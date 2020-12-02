@@ -4,7 +4,6 @@ import pickle
 
 import numpy as np
 import networkx as nx
-from tqdm import tqdm
 
 import pysubiso
 
