@@ -9,7 +9,7 @@ sourcefiles = ['pysubiso/riwrapper.pyx', 'pysubiso/ritest.cc']
 extensions = [Extension("pysubiso", sourcefiles,
                         include_dirs=['ri/include', 'ri/rilib'],
                         language="c++",
-                        extra_compile_args=["-O3"])]
+                        extra_compile_args=["-O3", '-std=c++17'])]
 
 setup(
     name='pysubiso',
