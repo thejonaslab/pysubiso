@@ -9,8 +9,11 @@ Currently it wraps RI https://github.com/InfOmics/RI
 but we would eventually like to wrap LEMON
 https://lemon.cs.elte.hu/trac/lemon/wiki/Documentation
 
-
-
+## TODO 
+[ ] Settle on an API which can switch between backends
+[ ] Create tests 
+[ ] check subiso between differently-sized graphs
+[ ] rename everything
 
 ## Development
 Option 1: Local Cython setup
