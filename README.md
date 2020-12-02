@@ -4,12 +4,6 @@ This is a library which attempts to unify all of our graph isomorphism
 and subisomorphism code into one library with extensive tests and benchmarking, 
 all from Python. 
 
-Goals:
-1. no explicit dependence on any graph library (use adj matrices)
-2. focus on small graphs ( < 128 nodes)
-
-
-
 Currently it wraps RI https://github.com/InfOmics/RI
 
 but we would eventually like to wrap LEMON
