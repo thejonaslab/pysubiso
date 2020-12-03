@@ -63,171 +63,173 @@ void usage(char* args0);
 
 
 
+// int old_read_egfu(const char* fileName, FILE* fd, Graph* graph){
+// 	char str[STR_READ_LENGTH];
+// 	unsigned int i,j;
 
-int old_read_egfu(const char* fileName, FILE* fd, Graph* graph){
-	char str[STR_READ_LENGTH];
-	int i,j;
+// 	if (fscanf(fd,"%s",str) != 1){	//#graphname
+// 		return -1;
+// 	}
+// 	if (fscanf(fd,"%d",&(graph->nof_nodes)) != 1){//nof nodes
+// 		return -1;
+// 	}
 
-	if (fscanf(fd,"%s",str) != 1){	//#graphname
-		return -1;
-	}
-	if (fscanf(fd,"%d",&(graph->nof_nodes)) != 1){//nof nodes
-		return -1;
-	}
+// 	//node labels
+// 	graph->nodes_attrs = (void**)malloc(graph->nof_nodes * sizeof(void*));
+// 	char *label = new char[STR_READ_LENGTH];
+// 	for(i=0; i<graph->nof_nodes; i++){
+// 		if (fscanf(fd,"%s",label) != 1){
+// 			return -1;
+// 		}
+//     graph->nodes_attrs[i] = (char*)malloc((strlen(label) + 1) * sizeof(char));
+//     strcpy((char*)graph->nodes_attrs[i], label);
+// 	}
 
-	//node labels
-	graph->nodes_attrs = (void**)malloc(graph->nof_nodes * sizeof(void*));
-	char *label = new char[STR_READ_LENGTH];
-	for(i=0; i<graph->nof_nodes; i++){
-		if (fscanf(fd,"%s",label) != 1){
-			return -1;
-		}
-    graph->nodes_attrs[i] = (char*)malloc((strlen(label) + 1) * sizeof(char));
-    strcpy((char*)graph->nodes_attrs[i], label);
-	}
+// 	//edges
+// 	graph->out_adj_sizes = (unsigned int*)calloc(graph->nof_nodes, sizeof(int));
+// 	graph->in_adj_sizes = (unsigned int*)calloc(graph->nof_nodes, sizeof(int));
 
-	//edges
-	graph->out_adj_sizes = (int*)calloc(graph->nof_nodes, sizeof(int));
-	graph->in_adj_sizes = (int*)calloc(graph->nof_nodes, sizeof(int));
+// 	egr_neighs_t **ns_o = (egr_neighs_t**)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
+//   egr_neighs_t **ns_i = (egr_neighs_t**)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
+// 	for(i=0; i<graph->nof_nodes; i++){
+// 		ns_o[i] = NULL;
+//     ns_i[i] = NULL;
+// 	}
+// 	unsigned int temp = 0;
+// 	if (fscanf(fd,"%d",&temp) != 1){//number of edges
+// 		return -1;
+// 	}
 
-	egr_neighs_t **ns_o = (egr_neighs_t**)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
-  egr_neighs_t **ns_i = (egr_neighs_t**)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
-	for(i=0; i<graph->nof_nodes; i++){
-		ns_o[i] = NULL;
-    ns_i[i] = NULL;
-	}
-	int temp = 0;
-	if (fscanf(fd,"%d",&temp) != 1){//number of edges
-		return -1;
-	}
+// 	int es = 0, et = 0;
+// 	for(i=0; i<temp; i++){
+// 		if (fscanf(fd,"%d",&es) != 1){//source node
+// 			return -1;
+// 		}
+// 		if (fscanf(fd,"%d",&et) != 1){//target node
+// 			return -1;
+// 		}
+// 		if (fscanf(fd,"%s",label) != 1){
+// 			return -1;
+// 		}
 
-	int es = 0, et = 0;
-	for(i=0; i<temp; i++){
-		if (fscanf(fd,"%d",&es) != 1){//source node
-			return -1;
-		}
-		if (fscanf(fd,"%d",&et) != 1){//target node
-			return -1;
-		}
-		if (fscanf(fd,"%s",label) != 1){
-			return -1;
-		}
+// 		graph->out_adj_sizes[es]++;
+// 		graph->in_adj_sizes[et]++;
 
-		graph->out_adj_sizes[es]++;
-		graph->in_adj_sizes[et]++;
+// 		if(ns_o[es] == NULL){
+// 			ns_o[es] = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
+// 			ns_o[es]->nid = et;
+// 			ns_o[es]->next = NULL;
+// 			ns_o[es]->label = (char*)malloc((strlen(label) + 1) * sizeof(char));
+//       strcpy(ns_o[es]->label, label);
+// 		}
+// 		else{
+// 			egr_neighs_t* n = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
+// 			n->nid = et;
+// 			n->next = (struct egr_neighs_t*)ns_o[es];
+//       n->label = (char*)malloc((strlen(label) + 1) * sizeof(char));
+//       strcpy(n->label, label);
+// 			ns_o[es] = n;
+// 		}
 
-		if(ns_o[es] == NULL){
-			ns_o[es] = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-			ns_o[es]->nid = et;
-			ns_o[es]->next = NULL;
-			ns_o[es]->label = (char*)malloc((strlen(label) + 1) * sizeof(char));
-      strcpy(ns_o[es]->label, label);
-		}
-		else{
-			egr_neighs_t* n = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-			n->nid = et;
-			n->next = (struct egr_neighs_t*)ns_o[es];
-      n->label = (char*)malloc((strlen(label) + 1) * sizeof(char));
-      strcpy(n->label, label);
-			ns_o[es] = n;
-		}
+// 		graph->out_adj_sizes[et]++;
+// 		graph->in_adj_sizes[es]++;
 
-		graph->out_adj_sizes[et]++;
-		graph->in_adj_sizes[es]++;
+// 		if(ns_o[et] == NULL){
+// 			ns_o[et] = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
+// 			ns_o[et]->nid = es;
+// 			ns_o[et]->next = NULL;
+//       ns_o[et]->label = (char*)malloc((strlen(label) + 1) * sizeof(char));
+//       strcpy((char*)ns_o[et]->label, label);
+// 		}
+// 		else{
+// 			egr_neighs_t* n = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
+// 			n->nid = es;
+// 			n->next = (struct egr_neighs_t*)ns_o[et];
+//       n->label = (char*)malloc((strlen(label) + 1) * sizeof(char));
+//       strcpy((char*)n->label, label);
+// 			ns_o[et] = n;
+// 		}
 
-		if(ns_o[et] == NULL){
-			ns_o[et] = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-			ns_o[et]->nid = es;
-			ns_o[et]->next = NULL;
-      ns_o[et]->label = (char*)malloc((strlen(label) + 1) * sizeof(char));
-      strcpy((char*)ns_o[et]->label, label);
-		}
-		else{
-			egr_neighs_t* n = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-			n->nid = es;
-			n->next = (struct egr_neighs_t*)ns_o[et];
-      n->label = (char*)malloc((strlen(label) + 1) * sizeof(char));
-      strcpy((char*)n->label, label);
-			ns_o[et] = n;
-		}
-
-	}
-
-
-	graph->out_adj_list = (int**)malloc(graph->nof_nodes * sizeof(int*));
-	graph->in_adj_list = (int**)malloc(graph->nof_nodes * sizeof(int*));
-	graph->out_adj_attrs = (void***)malloc(graph->nof_nodes * sizeof(void**));
-
-	int* ink = (int*)calloc(graph->nof_nodes, sizeof(int));
-	for (i=0; i<graph->nof_nodes; i++){
-		graph->in_adj_list[i] = (int*)calloc(graph->in_adj_sizes[i], sizeof(int));
-
-	}
-	for (i=0; i<graph->nof_nodes; i++){
-		// reading degree and successors of vertex i
-		graph->out_adj_list[i] = (int*)calloc(graph->out_adj_sizes[i], sizeof(int));
-		graph->out_adj_attrs[i] = (void**)malloc(graph->out_adj_sizes[i] * sizeof(void*));
-
-		egr_neighs_t *n = ns_o[i];
-		for (j=0; j<graph->out_adj_sizes[i]; j++){
-			graph->out_adj_list[i][j] = n->nid;
-			graph->out_adj_attrs[i][j] = n->label;
-
-			graph->in_adj_list[n->nid][ink[n->nid]] = i;
-
-			ink[n->nid]++;
-
-			n = n->next;
-		}
-	}
-
-//	graph->sort_edges();
+// 	}
 
 
+// 	graph->out_adj_list = (int**)malloc(graph->nof_nodes * sizeof(int*));
+// 	graph->in_adj_list = (int**)malloc(graph->nof_nodes * sizeof(int*));
+// 	graph->out_adj_attrs = (void***)malloc(graph->nof_nodes * sizeof(void**));
 
-	for(int i=0; i<graph->nof_nodes; i++){
-		if(ns_o[i] != NULL){
-			egr_neighs_t *p = NULL;
-			egr_neighs_t *n = ns_o[i];
-			for (j=0; j<graph->out_adj_sizes[i]; j++){
-				if(p!=NULL)
-					free(p);
-				p = n;
-				n = n->next;
-			}
-			if(p!=NULL)
-			free(p);
-		}
+// 	int* ink = (int*)calloc(graph->nof_nodes, sizeof(int));
+// 	for (i=0; i<graph->nof_nodes; i++){
+// 		graph->in_adj_list[i] = (int*)calloc(graph->in_adj_sizes[i], sizeof(int));
 
-		if(ns_i[i] != NULL){
-			egr_neighs_t *p = NULL;
-			egr_neighs_t *n = ns_i[i];
-			for (j=0; j<graph->out_adj_sizes[i]; j++){
-				if(p!=NULL)
-					free(p);
-				p = n;
-				n = n->next;
-			}
-			if(p!=NULL)
-			free(p);
-		}
+// 	}
+// 	for (i=0; i<graph->nof_nodes; i++){
+// 		// reading degree and successors of vertex i
+// 		graph->out_adj_list[i] = (int*)calloc(graph->out_adj_sizes[i], sizeof(int));
+// 		graph->out_adj_attrs[i] = (void**)malloc(graph->out_adj_sizes[i] * sizeof(void*));
+
+// 		egr_neighs_t *n = ns_o[i];
+// 		for (j=0; j<graph->out_adj_sizes[i]; j++){
+// 			graph->out_adj_list[i][j] = n->nid;
+//             // int * label = (int*)calloc(n->label, sizeof(int));
+//             // *label = n->label; 
+//             std::cout << "the label is " << n->label << std::endl;
+// 			graph->out_adj_attrs[i][j] = n->label;
+
+// 			graph->in_adj_list[n->nid][ink[n->nid]] = i;
+
+// 			ink[n->nid]++;
+
+// 			n = n->next;
+// 		}
+// 	}
+
+// //	graph->sort_edges();
 
 
-//			free(ns_o);
-//			free(ns_i);
-	}
+
+// 	for(unsigned int i=0; i<graph->nof_nodes; i++){
+// 		if(ns_o[i] != NULL){
+// 			egr_neighs_t *p = NULL;
+// 			egr_neighs_t *n = ns_o[i];
+// 			for (j=0; j<graph->out_adj_sizes[i]; j++){
+// 				if(p!=NULL)
+// 					free(p);
+// 				p = n;
+// 				n = n->next;
+// 			}
+// 			if(p!=NULL)
+// 			free(p);
+// 		}
+
+// 		if(ns_i[i] != NULL){
+// 			egr_neighs_t *p = NULL;
+// 			egr_neighs_t *n = ns_i[i];
+// 			for (j=0; j<graph->out_adj_sizes[i]; j++){
+// 				if(p!=NULL)
+// 					free(p);
+// 				p = n;
+// 				n = n->next;
+// 			}
+// 			if(p!=NULL)
+// 			free(p);
+// 		}
+
+
+// //			free(ns_o);
+// //			free(ns_i);
+// 	}
   
-  free(ns_o);
-  free(ns_i);
-  free(ink);
-  delete[] label;
-	return 0;
-};
+//   free(ns_o);
+//   free(ns_i);
+//   free(ink);
+//   delete[] label;
+// 	return 0;
+// };
 
-int read_egfu_adj(int N, int * adj, int * vertlabel, 
+int read_egfu_adj(unsigned int N, int * adj, int * vertlabel, 
                   Graph* graph){
-	char str[STR_READ_LENGTH];
-	int i,j;
+	//char str[STR_READ_LENGTH];
+	unsigned int i,j;
 
 	// if (fscanf(fd,"%s",str) != 1){	//#graphname
 	// 	return -1;
@@ -248,8 +250,8 @@ int read_egfu_adj(int N, int * adj, int * vertlabel,
 	}
 
 	//edges
-	graph->out_adj_sizes = (int*)calloc(graph->nof_nodes, sizeof(int));
-	graph->in_adj_sizes = (int*)calloc(graph->nof_nodes, sizeof(int));
+	graph->out_adj_sizes = (unsigned int*)calloc(graph->nof_nodes, sizeof(int));
+	graph->in_adj_sizes = (unsigned int*)calloc(graph->nof_nodes, sizeof(int));
 
 	egr_neighs_t **ns_o = (egr_neighs_t**)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
     egr_neighs_t **ns_i = (egr_neighs_t**)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
@@ -268,9 +270,11 @@ int read_egfu_adj(int N, int * adj, int * vertlabel,
 
     for (i = 0; i < N; i++) {
         for (j = i + 1; j < N; j++) {
-            int label = adj[i * N + j]; 
+            int label = adj[i * N + j];
             if (label  > 0) {
-                
+                // std::cout << "label i=" << i << " j=" << j
+                //           << " N=" << N << " label:" << label <<  std::endl;
+
                 int es = i;
                 int et = j;
 
@@ -282,14 +286,14 @@ int read_egfu_adj(int N, int * adj, int * vertlabel,
                     ns_o[es] = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
                     ns_o[es]->nid = et;
                     ns_o[es]->next = NULL;
-                    ns_o[es]->label = (char*)malloc(sizeof(int));
+                    ns_o[es]->label = (int*)malloc(sizeof(int));
                     *(ns_o[es]->label) = label;
                 }
                 else{
                     egr_neighs_t* n = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
                     n->nid = et;
                     n->next = (struct egr_neighs_t*)ns_o[es];
-                    n->label =  (char*)malloc(sizeof(int));
+                    n->label =  (int*)malloc(sizeof(int));
                     *(n->label) = label; 
                     ns_o[es] = n;
                 }
@@ -302,14 +306,14 @@ int read_egfu_adj(int N, int * adj, int * vertlabel,
                     ns_o[et] = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
                     ns_o[et]->nid = es;
                     ns_o[et]->next = NULL;
-                    ns_o[et]->label = (char*)malloc(sizeof(int));
+                    ns_o[et]->label = (int*)malloc(sizeof(int));
                     *(ns_o[et]->label) = label; 
                 }
                 else{
                     egr_neighs_t* n = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
                     n->nid = es;
                     n->next = (struct egr_neighs_t*)ns_o[et];
-                    n->label =  (char*)malloc(sizeof(int));
+                    n->label =  (int*)malloc(sizeof(int));
                     *(n->label) = label; 
                     ns_o[et] = n;
                 }
@@ -336,6 +340,7 @@ int read_egfu_adj(int N, int * adj, int * vertlabel,
 		egr_neighs_t *n = ns_o[i];
 		for (j=0; j<graph->out_adj_sizes[i]; j++){
 			graph->out_adj_list[i][j] = n->nid;
+
 			graph->out_adj_attrs[i][j] = n->label;
 			graph->in_adj_list[n->nid][ink[n->nid]] = i;
 
@@ -345,11 +350,12 @@ int read_egfu_adj(int N, int * adj, int * vertlabel,
 		}
 	}
 
+    //graph->print();
 //	graph->sort_edges();
 
 
     
-	for(int i=0; i<graph->nof_nodes; i++){
+	for(unsigned int i=0; i<graph->nof_nodes; i++){
 		if(ns_o[i] != NULL){
 			egr_neighs_t *p = NULL;
 			egr_neighs_t *n = ns_o[i];
@@ -389,58 +395,59 @@ int read_egfu_adj(int N, int * adj, int * vertlabel,
 };
 
 
-int othermain(int argc, char* argv[]){
+// int othermain(int argc, char* argv[]){
 
 
-	MATCH_TYPE matchtype;
-	GRAPH_FILE_TYPE filetype;
-	std::string reference;
-	std::string query;
+// 	MATCH_TYPE matchtype;
+// 	GRAPH_FILE_TYPE filetype;
+// 	std::string reference;
+// 	std::string query;
 
-	// std::string par = argv[1];
-	// if(par=="iso"){
-	// 	matchtype = MT_ISO;
-	// }
-	// else if(par=="ind"){
-	// 	matchtype = MT_INDSUB;
-	// }
-	// else if(par=="mono"){
-    matchtype = MT_MONO;
-	// }
-	// else{
-	// 	usage(argv[0]);
-	// 	return -1;
-	// }
+// 	// std::string par = argv[1];
+// 	// if(par=="iso"){
+// 	// 	matchtype = MT_ISO;
+// 	// }
+// 	// else if(par=="ind"){
+// 	// 	matchtype = MT_INDSUB;
+// 	// }
+// 	// else if(par=="mono"){
+//     matchtype = MT_MONO;
+// 	// }
+// 	// else{
+// 	// 	usage(argv[0]);
+// 	// 	return -1;
+// 	// }
 
-	// par = argv[2];
-	// if(par=="gfu"){
-	// 	filetype = GFT_GFU;
-	// }
-	// else if(par=="gfd"){
-	// 	filetype = GFT_GFD;
-	// }
-	// else if(par=="gfda"){
-	// 		filetype = GFT_GFDA;
-	// 	}
-	// else if(par=="geu"){
-    filetype = GFT_EGFU;
-	// }
-	// else if(par=="ged"){
-	// 	filetype = GFT_EGFD;
-	// }
-	// else if(par=="vfu"){
-	// 	filetype = GFT_VFU;
-	// }
-	// else{
-	// 	usage(argv[0]);
-	// 	return -1;
-	// }
+// 	// par = argv[2];
+// 	// if(par=="gfu"){
+// 	// 	filetype = GFT_GFU;
+// 	// }
+// 	// else if(par=="gfd"){
+// 	// 	filetype = GFT_GFD;
+// 	// }
+// 	// else if(par=="gfda"){
+// 	// 		filetype = GFT_GFDA;
+// 	// 	}
+// 	// else if(par=="geu"){
+//     filetype = GFT_EGFU;
+// 	// }
+// 	// else if(par=="ged"){
+// 	// 	filetype = GFT_EGFD;
+// 	// }
+// 	// else if(par=="vfu"){
+// 	// 	filetype = GFT_VFU;
+// 	// }
+// 	// else{
+// 	// 	usage(argv[0]);
+// 	// 	return -1;
+// 	// }
 
-	reference = argv[3];
-	query = argv[4];
+// 	reference = argv[3];
+// 	query = argv[4];
 
-	//return match(matchtype, filetype, reference, query);
-};
+// 	//return match(matchtype, filetype, reference, query);
+//     return 0; 
+// };
 
 
 
@@ -631,22 +638,24 @@ int is_subiso(int query_N, int * query_adj, int * query_vertlabel,
 {
 
     MATCH_TYPE     matchtype = MT_MONO;
-    GRAPH_FILE_TYPE filetype = GFT_EGFU;
+    //GRAPH_FILE_TYPE filetype = GFT_EGFU;
     
-	TIMEHANDLE load_s, load_s_q, make_mama_s, match_s, total_s;
-	double load_t=0;double load_t_q=0; double make_mama_t=0; double match_t=0; double total_t=0;
+	TIMEHANDLE //load_s, load_s_q,
+        make_mama_s, match_s, total_s;
+	//double load_t=0; //double load_t_q=0;
+    double make_mama_t=0; double match_t=0; //double total_t=0;
 	total_s=start_time();
 
-	int rret;
+	//int rret;
 
 	AttributeComparator* nodeComparator;			//to compare node labels
 	AttributeComparator* edgeComparator;			//to compare edge labels
-    nodeComparator = new IntAttrComparator();
-    edgeComparator = new IntAttrComparator();
+    nodeComparator = new IntAttrComparator("node");
+    edgeComparator = new IntAttrComparator("edge");
 
     
-	TIMEHANDLE tt_start;
-	double tt_end;
+	// TIMEHANDLE tt_start;
+    //	double tt_end;
 
 
 
@@ -671,10 +680,11 @@ int is_subiso(int query_N, int * query_adj, int * query_vertlabel,
 
 	//mama->print();
 
-	long 	steps = 0,				//total number of steps of the backtracking phase
-			triedcouples = 0, 		//nof tried pair (query node, reference node)
-			matchcount = 0, 		//nof found matches
-			matchedcouples = 0;		//nof mathed pair (during partial solutions)
+	long 	//steps = 0,				//total number of steps of the backtracking phase
+        //triedcouples = 0, 		//nof tried pair (query node, reference node)
+        matchcount = 0; 		//nof found matches
+        //matchedcouples = 0
+        
 	long tsteps = 0, ttriedcouples = 0, tmatchedcouples = 0;
 
     //do not print matches, just count them
@@ -682,8 +692,8 @@ int is_subiso(int query_N, int * query_adj, int * query_vertlabel,
     
     MatchListener* matchListener=new EmptyMatchListener(max_time);
 
-    int i=0;
-    bool rreaded = true;
+    //int i=0;
+    //bool rreaded = true;
     //load_s=start_time();
     Graph * rrg = new Graph();
     read_egfu_adj(ref_N, ref_adj, ref_vertlabel, rrg); 

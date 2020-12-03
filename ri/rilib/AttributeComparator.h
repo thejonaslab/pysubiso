@@ -75,8 +75,13 @@ public:
 
 class IntAttrComparator: public AttributeComparator{
 public:
-	IntAttrComparator(){};
+	IntAttrComparator(std::string name) :
+        comparator_name_(name)
+    {
+
+    };
 	virtual bool compare(void* attr1, void* attr2){
+
 		int* a=(int*)attr1;
 		int* b=(int*)attr2;
 		return ((*a)-(*b))==0;
@@ -86,6 +91,8 @@ public:
 		int* b=(int*)attr2;
 		return (*a)-(*b);
 	};
+
+    std::string comparator_name_; 
 };
 
 }

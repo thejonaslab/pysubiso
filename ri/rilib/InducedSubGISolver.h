@@ -49,7 +49,7 @@ public:
 				AttributeComparator& _edgeComparator,
 				MatchListener& _matchListener
 				) : Solver(_mama, _rgraph, _qgraph, _nodeComparator, _edgeComparator, _matchListener){
-
+        std::cout << "calling induced subgi solver" << std::endl; 
 	}
 
 
@@ -63,7 +63,7 @@ public:
 
 	virtual bool edgesCheck(int si, int ci, int* solution, bool* matched){
 		int source, target;
-		int ii;
+		unsigned int ii;
 		for(int me=0; me<mama.edges_sizes[si]; me++){
 			source = solution[ mama.edges[si][me].source ];
 			target = solution[ mama.edges[si][me].target ];

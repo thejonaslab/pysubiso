@@ -58,7 +58,7 @@ void match(
 		long* triedcouples,
 		long* matchedcouples){
 
-	Solver* solver;
+	Solver* solver = NULL;
 	switch(matchType){
 	case MT_ISO:
 		solver = new IsoGISolver(matchingMachine, reference, query, nodeComparator, edgeComparator, matchListener);

@@ -50,6 +50,7 @@ public:
 				AttributeComparator& _edgeComparator,
 				MatchListener& _matchListener
 				) : Solver(_mama, _rgraph, _qgraph, _nodeComparator, _edgeComparator, _matchListener){
+        std::cout << "calling IsoGISolver solver" << std::endl; 
 
 	}
 

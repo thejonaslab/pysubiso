@@ -64,8 +64,16 @@ public:
 		int source, target;
 		int ii;
 		for(int me=0; me<mama.edges_sizes[si]; me++){
+
 			source = solution[ mama.edges[si][me].source ];
 			target = solution[ mama.edges[si][me].target ];
+            // std::cout << "edgesCheck "
+            //           << " si=" << si
+            //           << " ci=" << ci
+            //           << " me=" << me
+            //           << " source=" << source
+            //           << " target=" << target <<std::endl;
+                
 
 			for(ii=0; ii<rgraph.out_adj_sizes[source]; ii++){
 				if(rgraph.out_adj_list[source][ii] == target){
@@ -84,6 +92,11 @@ public:
 				return false;
 			}
 		}
+        // std::cout << "edgesCheck returning true "
+        //           << " source =" << source
+        //           << " target =" << target
+        //           << " si=" << si
+        //           << " ci=" << ci  << std::endl;
 		return true;
 	}
 };

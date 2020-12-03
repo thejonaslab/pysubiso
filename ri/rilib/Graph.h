@@ -35,12 +35,12 @@ namespace rilib{
 class Graph{
 public:
 	int id;
-	int nof_nodes;
+	unsigned int nof_nodes;
 
 	void** nodes_attrs;
 
-	int* out_adj_sizes;
-	int* in_adj_sizes;
+	unsigned int* out_adj_sizes;
+	unsigned int* in_adj_sizes;
 
 	int** out_adj_list;
 	int** in_adj_list;
@@ -58,10 +58,12 @@ public:
 	}
   
   ~Graph() {
-    int i, j;
+    unsigned int i, j;
     
     for (i=0; i<nof_nodes; ++i) {
-      for (j=0; j<out_adj_sizes[i]; ++j) free(out_adj_attrs[i][j]);
+        for (j=0; j<out_adj_sizes[i]; ++j) {
+            free(out_adj_attrs[i][j]);
+        }
       free(out_adj_attrs[i]);
       free(in_adj_list[i]);
       free(out_adj_list[i]);
@@ -135,7 +137,7 @@ public:
 		for(int i=0; i<nof_nodes; i++){
 			std::cout<<"| node["<<i<<"]\n";
 			std::cout<<"| \tattribute_pointer["<<nodes_attrs[i]<<"]\n";
-			std::cout<<"| \tattribute["<<*((std::string*)(nodes_attrs[i]))<<"]\n";
+			std::cout<<"| \tattribute["<<*((int*)(nodes_attrs[i]))<<"]\n";
 			std::cout<<"| \tout_adjs["<<out_adj_sizes[i]<<"][";
 			for(int j=0; j<out_adj_sizes[i]; j++){
 				std::cout<<out_adj_list[i][j];
