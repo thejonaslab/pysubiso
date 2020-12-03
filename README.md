@@ -14,6 +14,7 @@ https://lemon.cs.elte.hu/trac/lemon/wiki/Documentation
 [ ] Create tests 
 [ ] check subiso between differently-sized graphs
 [ ] rename everything
+[ ] Set up validation checks with networkx's code
 
 ## Development
 Option 1: Local Cython setup
