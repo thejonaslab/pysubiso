@@ -1,3 +1,7 @@
 /pysubiso/riwrapper.cpp
 /pysubiso.egg-info/
 /dist/
+/pysubiso/lemonwrapper.cpp
+/tests/__pycache__/
+/pysubiso/__pycache__/
+/build/

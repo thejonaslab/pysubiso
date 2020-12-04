@@ -3,6 +3,7 @@ import networkx as nx
 
 
 from pysubiso import riwrapper
+from pysubiso import lemonwrapper
 
 class TimeoutError(Exception):
     pass

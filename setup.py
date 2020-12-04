@@ -2,16 +2,28 @@ import os
 import sys
 from setuptools import setup, Extension, find_packages
 from Cython.Build import cythonize
+import numpy
 
 __version__ = '0.0.1'
 
 COMPILE_ARGS = ["-O3", '-std=c++17']
 if sys.platform == 'darwin':
-    COMPILE_ARGS.append('-stdlib=libc++')
+    #COMPILE_ARGS.append('-stdlib=libc++')
+    pass
 
-sourcefiles = ['pysubiso/riwrapper.pyx', 'pysubiso/rimatch.cc']
-extensions = [Extension("pysubiso.riwrapper", sourcefiles,
+extensions = []
+
+ri_sourcefiles = ['pysubiso/riwrapper.pyx', 'pysubiso/rimatch.cc']
+extensions += [Extension("pysubiso.riwrapper", ri_sourcefiles,
                         include_dirs=['ri/include', 'ri/rilib'],
+                        language="c++",
+                        extra_compile_args=COMPILE_ARGS)]
+
+
+
+lemon_sourcefiles = ["pysubiso/lemonwrapper.pyx", "pysubiso/lemonmatch.cc", "pysubiso/graphutil.cc"]
+extensions += [Extension("pysubiso.lemonwrapper", lemon_sourcefiles,
+                        include_dirs=['lemon/', numpy.get_include()],
                         language="c++",
                         extra_compile_args=COMPILE_ARGS)]
 

@@ -1,0 +1,2 @@
+/Library/Developer/CommandLineTools/usr/bin/ar qc libemon.a CMakeFiles/lemon.dir/arg_parser.o CMakeFiles/lemon.dir/base.o CMakeFiles/lemon.dir/color.o CMakeFiles/lemon.dir/lp_base.o CMakeFiles/lemon.dir/lp_skeleton.o CMakeFiles/lemon.dir/random.o CMakeFiles/lemon.dir/bits/windows.o
+/Library/Developer/CommandLineTools/usr/bin/ranlib libemon.a

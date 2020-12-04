@@ -1,0 +1,10 @@
+prefix=/Users/jonas/projects/pysubiso/lemon/lemon-out
+exec_prefix=/Users/jonas/projects/pysubiso/lemon/lemon-out/bin
+libdir=/Users/jonas/projects/pysubiso/lemon/lemon-out/lib
+includedir=/Users/jonas/projects/pysubiso/lemon/lemon-out/include
+
+Name: Project
+Description: Library for Efficient Modeling and Optimization in Networks
+Version: 
+Libs: -L${libdir} -lemon     
+Cflags: -I${includedir}

@@ -101,3 +101,5 @@ Running tests (after installation):
 - `import riwrapper`
 - `riwrapper.c_is_subiso`
 
+## Lemon notes
+
