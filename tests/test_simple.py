@@ -127,7 +127,7 @@ def test_indsubiso_random_del(matcher):
     m = pysubiso.create_match(matcher)
     np.random.seed(0)
     
-    for _ in range(1000):
+    for _ in range(10000):
                 
         g = random_graph_small()
         g_adj, g_color = nx_to_adj(g)

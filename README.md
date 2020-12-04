@@ -75,6 +75,8 @@ portion of the passed in adjaceny matrices
 [ ] fix timeout on subiso matching
 [ ] normalize / unify test suite function naming
 [ ] split out nx helper funcs to a different module
+[ ] port lemon over
+[ ] benchmark both
 
 ## Development
 Option 1: Local Cython setup
