@@ -65,6 +65,8 @@ portion of the passed in adjaceny matrices
 
 ## TODO 
 [ ] Settle on an API which can switch between backends
+[ ] basic migration of RI code to new API 
+[ ] migrate existing tests to new API
 [ ] Create tests 
 [ ] check subiso between differently-sized graphs
 [ ] rename everything

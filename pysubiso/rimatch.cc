@@ -33,7 +33,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "ritest.h"
+#include "rimatch.h"
 #include "c_textdb_driver.h"
 #include "timer.h"
 

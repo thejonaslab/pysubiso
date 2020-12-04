@@ -3,29 +3,19 @@
 import numpy as np
 
 from libcpp.string cimport string
-cdef extern from "ritest.h":
+cdef extern from "rimatch.h":
    int is_subiso(int query_N, int * query_adj, int * query_vertlabel,               
                  int ref_N, int * ref_adj, int * ref_vertlabel, float maxtime) except +
 
    # int old_match(string referencefile,
    #               string queryfile);
 
-def test():
-    print("hello world")
-    return 12345
-
-
-
-        # wasiso, mapping = cythontest.lemon_subiso_vf2(
-        #     gsub_adj, gmain_colors, 
-        #     gmain_adj, gmain_colors, 
-        #     weighted_edges=True, max_run_sec=max_run_sec)
-
 # def old_match_call(reference_filename,
 #                    query_filename):
 #     return old_match(reference_filename, query_filename)
 
-cpdef c_is_subiso(
+
+cpdef c_is_indsubiso(
     int[:, :] g_sub_adj,
     int[:] g_sub_colors,
     int[:, :] g_main_adj,
@@ -33,7 +23,8 @@ cpdef c_is_subiso(
     float maxtime,
 ):
     """
-    Check if graph g (with provided node colors) is subisomorphic to graph G.
+    Check if graph g (with provided node colors) is induced 
+    subisomorphic to graph G.
 
     Note that non-zero values in the adjacency matrices 
     are treated as labeled edges and the adj matrix 

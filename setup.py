@@ -9,8 +9,8 @@ COMPILE_ARGS = ["-O3", '-std=c++17']
 if sys.platform == 'darwin':
     COMPILE_ARGS.append('-stdlib=libc++')
 
-sourcefiles = ['pysubiso/riwrapper.pyx', 'pysubiso/ritest.cc']
-extensions = [Extension("pysubiso", sourcefiles,
+sourcefiles = ['pysubiso/riwrapper.pyx', 'pysubiso/rimatch.cc']
+extensions = [Extension("pysubiso.riwrapper", sourcefiles,
                         include_dirs=['ri/include', 'ri/rilib'],
                         language="c++",
                         extra_compile_args=COMPILE_ARGS)]
@@ -24,7 +24,7 @@ setup(
     author_email='ericj@uchicago.edu',
     url='https://github.com/thejonaslab/pysubiso',
     license='MIT',
-    packages=find_packages(),
+    packages=['pysubiso'], 
     # install_requires=[
     #     'Cython>=0.29.21',
     #     'numpy>=1.19.2',
