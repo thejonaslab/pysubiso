@@ -30,6 +30,9 @@ def nx_random_graph(N, node_color_n, edge_color_n):
     return g
 
 def nx_to_adj(g):
+    """
+    Convert a networkx graph to adj matrix and node colors
+    """
     node_order = np.arange(len(g.nodes))
     adj = nx.to_numpy_array(g, dtype=np.int32,
                             weight='color', nodelist = node_order)
@@ -37,18 +40,35 @@ def nx_to_adj(g):
     return adj, color
 
 def nx_permute(g):
+    """
+    Permute the ordering and labeling of nodes in a networkx graph g
+    """
     mapping = {i: v for i, v in enumerate(np.random.permutation(len(g.nodes)))}
     g2 = nx.relabel_nodes(g, mapping)
     return g2
 
 def nx_random_subgraph(g, n):
-    
+    """
+    Randomly delete n nodes from g. Returns new relabeled graph
+    Note that original node id is stored in attribute old_id
+    """
     tgt_nodes = np.random.permutation(len(g.nodes))[:n]
     gs = nx.subgraph(g, tgt_nodes)
     for n in gs.nodes:
          gs.nodes[n]['old_id'] = n
     mapping = {k: i for i,k in enumerate(tgt_nodes)}
     return nx.relabel_nodes(gs, mapping)
+
+def nx_random_edge_del(g, n):
+    """
+    Randomly delete n nodes from g. Returns new graph
+    Note that original node id is stored in attribute old_id
+    """
+
+    g = g.copy()
+    tgt_edges = np.random.permutation(g.edges)[:n]
+    g.remove_edges_from(tgt_edges)
+    return g
 
 
 @pytest.mark.parametrize('matcher', MATCHERS)
@@ -81,22 +101,37 @@ def test_indsubiso_simple_edgedel(matcher):
 
     assert m.is_indsubiso(y, c, x, c)
     assert not m.is_indsubiso(x, c, y, c)
-    
-@pytest.mark.parametrize('matcher', MATCHERS)
-def test_indsubiso_del_edges(matcher):
 
+
+def random_graph_small(graph_size=20, node_colors = [1, 2, 5],
+                       edge_colors = [1, 2, 4]):
+
+    graph_size = np.random.randint(1, graph_size)
+    node_color_n = np.random.choice(node_colors + [graph_size])
+    edge_color_n = np.random.choice(edge_colors)
+                
+    g = nx_random_graph(graph_size, node_color_n, edge_color_n)
+    return g
+
+        
+@pytest.mark.parametrize('matcher', MATCHERS)
+def test_indsubiso_random_del(matcher):
+    """
+    Generate random graphs that should be indsubiso
+    by deleting subsets of nodes, edges
+    
+    """
     m = pysubiso.create_match(matcher)
     np.random.seed(0)
     
     for _ in range(1000):
-        graph_size = np.random.randint(1, 20)
-        node_color_n = np.random.choice([1, 2, 5, graph_size])
-        edge_color_n = np.random.choice([1, 2, 4])
                 
-        g = nx_random_graph(graph_size, node_color_n, edge_color_n)    
+        g = random_graph_small()
         g_adj, g_color = nx_to_adj(g)
 
         g_perm = nx_permute(g)
+
+        ## randomly delete nodes
         for n in range(1, len(g_perm.nodes)):
 
             g_sub = nx_random_subgraph(g_perm, n)
@@ -104,6 +139,15 @@ def test_indsubiso_del_edges(matcher):
             g_sub_adj, g_sub_color = nx_to_adj(g)
             assert m.is_indsubiso(g_sub_adj, g_sub_color,
                                   g_adj, g_color)
+        ## randomly delete edges
+        for n in range(1, len(g_perm.edges)):
+
+            g_sub = nx_random_edge_del(g_perm, n)
+
+            g_sub_adj, g_sub_color = nx_to_adj(g)
+            assert m.is_indsubiso(g_sub_adj, g_sub_color,
+                                  g_adj, g_color)
+
 
 @pytest.mark.xfail
 @pytest.mark.parametrize('matcher', MATCHERS)
