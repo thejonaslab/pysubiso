@@ -236,7 +236,7 @@ def test_test_edge_add_indsubiso_timeout(matcher):
     g_perm = nx_permute(g)
     g_sub = nx_random_subgraph(g_perm, graph_size - 10)
     g_sub = nx_random_edge_del(g_sub, 5)
-    g_sub_adj, g_sub_color = nx_to_adj(g)
+    g_sub_adj, g_sub_color = nx_to_adj(g_sub)
 
     candidate_edges = gen_possible_next_edges(g_sub_adj, g_sub_color)
 

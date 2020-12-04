@@ -89,6 +89,8 @@ cpdef c_which_edges_indsubiso(
         sub_adj[i, j] = c
         sub_adj[j, i] = c # FIXME do we need to do this
 
+        elapsed_time = time.time() - start_time
+
         res = is_subiso(
             g_sub_adj.shape[0],
             &sub_adj[0, 0],
@@ -96,7 +98,7 @@ cpdef c_which_edges_indsubiso(
             g_main_adj.shape[0],
             &g_main_adj[0, 0],
             &g_main_colors[0],
-            maxtime # fixme should be remaining time
+            max(maxtime - elapsed_time, 1e-3) # fixme should be remaining time
         )
         results[pos] = res
         
@@ -106,45 +108,3 @@ cpdef c_which_edges_indsubiso(
         if elapsed_time  > maxtime:
             raise Exception("timeout")
 
-# def lemon_subiso_vf2(int[:, :] gsub_adj, int[:] gsub_label, 
-#                      int[:, :] gmain_adj, int[:] gmain_label, 
-#                      multiple_edges=False, weighted_edges=False, 
-#                      max_run_sec=10.0):
-# 
-#     
-#     cdef int d = gmain_adj.shape[0] 
-#     cdef int[:] out = np.zeros(d, dtype=np.int32)
-# 
-#     cdef int out_size = 0; 
-# 
-#     
-#     wasiso=  subiso_vf2_weighted(&gsub_adj[0, 0], 
-#                                  &gsub_label[0], len(gsub_adj), 
-#                                  &gmain_adj[0, 0], &gmain_label[0], 
-#                                  len(gmain_adj), 
-#                                  &out[0], &out_size, max_run_sec)
-#     return wasiso, np.array(out[:out_size])
-# 
-# def py_which_edges_subiso_labeled(int[:, :] g_full_in, int[:, :] g_sub_in, 
-#                                   int[:] g_label_in, 
-#                                   int[:,:, :] g_skip, 
-#                                   int[:] g_possible_weights,
-#                                   float max_run_sec=0.0):
-# 
-#     N = g_full_in.shape[0]
-#     PW = len(g_possible_weights)
-#     possible_out = np.zeros((N, N, PW), dtype=np.int32)
-#     
-#     cdef int[:, :, :] po = possible_out
-#     with nogil:
-#         r = which_edges_subiso_labeled(&g_full_in[0, 0], 
-#                                        &g_sub_in[0, 0], 
-#                                        &g_label_in[0], 
-#                                        &g_skip[0,0, 0], 
-#                                        N, 
-#                                        &g_possible_weights[0], 
-#                                        PW,
-#                                        &po[0,0, 0], max_run_sec)
-#     if r == -1:
-#         raise RuntimeError("Ran over time")
-#     return possible_out
