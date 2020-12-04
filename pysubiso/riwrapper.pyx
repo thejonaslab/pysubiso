@@ -1,6 +1,7 @@
 # cython: language_level=3, boundscheck=True
 # distutils: language = c++
 import numpy as np
+import time
 
 from libcpp.string cimport string
 cdef extern from "rimatch.h":
@@ -80,6 +81,9 @@ cpdef c_which_edges_indsubiso(
     cdef int n_sub_nodes = g_sub_adj.shape[0]
     cdef int res
     cdef int[:, :] sub_adj = np.copy(g_sub_adj)
+    cdef double start_time = time.time()
+    cdef double elapsed_time = 0.0
+    cdef int i, j, c, pos
     for pos, (i, j, c) in enumerate(possible_edges):
         orig_edge = sub_adj[i, j]
         sub_adj[i, j] = c
@@ -92,12 +96,15 @@ cpdef c_which_edges_indsubiso(
             g_main_adj.shape[0],
             &g_main_adj[0, 0],
             &g_main_colors[0],
-            maxtime
+            maxtime # fixme should be remaining time
         )
         results[pos] = res
         
         sub_adj[i, j] = orig_edge
         sub_adj[j, i] = orig_edge
+        elapsed_time = time.time() - start_time
+        if elapsed_time  > maxtime:
+            raise Exception("timeout")
 
 # def lemon_subiso_vf2(int[:, :] gsub_adj, int[:] gsub_label, 
 #                      int[:, :] gmain_adj, int[:] gmain_label, 

@@ -73,6 +73,8 @@ portion of the passed in adjaceny matrices
 [x] check subiso between differently-sized graphs
 [ ] rename everything
 [ ] fix timeout on subiso matching
+[ ] normalize / unify test suite function naming
+[ ] split out nx helper funcs to a different module
 
 ## Development
 Option 1: Local Cython setup

@@ -207,7 +207,7 @@ def gen_possible_next_edges(adj, colors):
     out = []
     for i in range(adj.shape[0]):
         for j in range(i +1, adj.shape[1]):
-            if adj[i, j] != 0:
+            if adj[i, j] == 0:
                 for c in colors:
                     out.append([i, j, c])
     return np.array(out, dtype=np.int32)
@@ -276,6 +276,33 @@ def test_edge_add_indsubiso_random_suite(matcher):
             
             assert res == m.is_indsubiso(a, g_sub_color, g_adj, g_color)
 
+#@pytest.mark.xfail
+@pytest.mark.parametrize('matcher', MATCHERS)
+def test_test_edge_add_indsubiso_timeout(matcher):
+    m = pysubiso.create_match(matcher)
+    np.random.seed(0)
+
+    graph_size = 40
+    node_color_n = 2
+    edge_color_n = 1
+    
+    g = nx_random_graph(graph_size, node_color_n, edge_color_n)    
+    g_adj, g_color = nx_to_adj(g)
+
+    g_perm = nx_permute(g)
+    g_sub = nx_random_subgraph(g_perm, graph_size - 10)
+    g_sub = nx_random_edge_del(g_sub, 5)
+    g_sub_adj, g_sub_color = nx_to_adj(g)
+    print("len(g_sub.edges)=", len(g_sub.edges))
+
+
+    candidate_edges = gen_possible_next_edges(g_sub_adj, g_sub_color)
+    print('candidate-edges.shape=', candidate_edges.shape)
+
+    with pytest.raises(pysubiso.TimeoutError):
+        valid_indsubiso = m.edge_add_indsubiso(g_sub_adj, g_sub_color,
+                                               g_adj, g_color,
+                                               candidate_edges, 0.1)
 
 # def test_c_is_subiso_fullsuite():
 #     with gzip.open('test.output.pickle.gz', 'rb') as fp:

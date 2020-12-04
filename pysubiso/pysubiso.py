@@ -90,10 +90,16 @@ class RIMatch(Match):
         """
 
         out_array = np.zeros(len(candidate_edges), dtype=np.int32)
-        riwrapper.c_which_edges_indsubiso(g_sub_adj, g_sub_color, 
-                                          g_main_adj, g_main_color, 
-                                          candidate_edges, out_array,
-                                          timeout)
+
+        try:
+            riwrapper.c_which_edges_indsubiso(g_sub_adj, g_sub_color, 
+                                              g_main_adj, g_main_color, 
+                                              candidate_edges, out_array,
+                                              timeout)
+        except Exception as e:  # FIXME clean up this exception handling
+            if str(e) == 'timeout':
+                raise TimeoutError()
+            raise 
         return out_array > 0
 
                 
