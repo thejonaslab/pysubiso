@@ -152,25 +152,25 @@ def test_indsubiso_random_del(matcher):
                                   g_adj, g_color)
 
 
-def test_indsubiso_data_suite(matcher='RI'):
+# def test_indsubiso_data_suite(matcher='RI'):
 
-    m = pysubiso.create_match(matcher)
+#     m = pysubiso.create_match(matcher)
 
-    with gzip.open('data/hardgraphs.pickle.gz', 'rb') as fp:
-        test_cases = pickle.load(fp)
-    for test_ix, test_case in enumerate(test_cases):
-        main_adj = test_case['main_adj'].astype(np.int32)
-        sub_adj = test_case['sub_adj'].astype(np.int32)
-        main_c = test_case['main_c']
-        sub_c = test_case['sub_c']
-        res = test_case['is_subiso']
-        t1 = time.time()
-        assert res == m.is_indsubiso(sub_adj, sub_c, main_adj, main_c, 0.1), test_ix
-        # t2 = time.time()
-        # runtime = t2-t1
-        # if runtime > 0.001:
-        #     print(test_ix, runtime)            
-        #     res == m.is_indsubiso(sub_adj, sub_c, main_adj, main_c, 0.001)
+#     with gzip.open('data/hardgraphs.pickle.gz', 'rb') as fp:
+#         test_cases = pickle.load(fp)
+#     for test_ix, test_case in enumerate(test_cases):
+#         main_adj = test_case['main_adj'].astype(np.int32)
+#         sub_adj = test_case['sub_adj'].astype(np.int32)
+#         main_c = test_case['main_c']
+#         sub_c = test_case['sub_c']
+#         res = test_case['is_subiso']
+#         t1 = time.time()
+#         assert res == m.is_indsubiso(sub_adj, sub_c, main_adj, main_c, 0.1), test_ix
+#         # t2 = time.time()
+#         # runtime = t2-t1
+#         # if runtime > 0.001:
+#         #     print(test_ix, runtime)            
+#         #     res == m.is_indsubiso(sub_adj, sub_c, main_adj, main_c, 0.001)
 
 
             
