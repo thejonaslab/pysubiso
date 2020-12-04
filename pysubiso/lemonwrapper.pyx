@@ -31,19 +31,19 @@ cdef extern from "lemonmatch.h":
                           int *, int *, int, 
                           int *, int *, double) except + 
 
-     int which_edges_subiso(int * g_full_in,
-                            int * g_sub_in,
-                            int * g_label_in, 
-                            int * g_skip, int g_n,
-                            int * possible_edge_out) nogil
 
-     int which_edges_subiso_labeled(int * g_full_in,
-                                    int * g_sub_in,
-                                    int * g_label_in, 
-                                    int * g_skip, int g_n,
-                                    int * possible_weights, 
-                                    int possible_weight_n, 
-                                    int * possible_edge_out, float max_time_sec) nogil
+     int which_edges_subiso_labeled(
+         int * g_sub_adj,
+         int * g_sub_colors,
+         int g_sub_n, 
+         int * g_main_adj,
+         int * g_main_colors,
+         int g_main_n,
+         int * candidate_edges,
+         int candidate_edges_n, 
+         int * possible_edge_out,
+         float max_run_sec) nogil;
+     
 
 # cdef extern from "vf3lib.h" namespace "vf3":
 #      int subiso_vf3_weighted(int *, int *, int,
@@ -91,45 +91,49 @@ def lemon_subiso_vf2(int[:, :] gsub_adj, int[:] gsub_label,
     return wasiso, np.array(out[:out_size])
 
 
-def py_which_edges_subiso(int[:, :] g_full_in, int[:, :] g_sub_in, 
-                       int[:] g_label_in, 
-                       int[:,:] g_skip):
+# def py_which_edges_subiso(int[:, :] g_full_in, int[:, :] g_sub_in, 
+#                        int[:] g_label_in, 
+#                        int[:,:] g_skip):
 
-    N = g_full_in.shape[0]
-    possible_out = np.zeros((N, N), dtype=np.int32)
+#     N = g_full_in.shape[0]
+#     possible_out = np.zeros((N, N), dtype=np.int32)
     
-    cdef int[:, :] po = possible_out
-    r = which_edges_subiso(&g_full_in[0, 0], 
-                           &g_sub_in[0, 0], 
-                           &g_label_in[0], 
-                           &g_skip[0,0], 
-                           N, 
-                           &po[0,0])
-    return possible_out
+#     cdef int[:, :] po = possible_out
+#     r = which_edges_subiso(&g_full_in[0, 0], 
+#                            &g_sub_in[0, 0], 
+#                            &g_label_in[0], 
+#                            &g_skip[0,0], 
+#                            N, 
+#                            &po[0,0])
+#     return possible_out
 
 
-def py_which_edges_subiso_labeled(int[:, :] g_full_in, int[:, :] g_sub_in, 
-                                  int[:] g_label_in, 
-                                  int[:,:, :] g_skip, 
-                                  int[:] g_possible_weights,
-                                  float max_run_sec=0.0):
+def which_edges_indsubiso(int[:, :] g_sub_adj,
+                          int[:] g_sub_colors,
+                          int[:, :] g_main_adj,
+                          int[:] g_main_colors, 
+                          int[:, :] possible_edges,
+                          float maxtime=0.0):
 
-    N = g_full_in.shape[0]
-    PW = len(g_possible_weights)
-    possible_out = np.zeros((N, N, PW), dtype=np.int32)
+
+    OUT_N = possible_edges.shape[0]
+    assert possible_edges.shape[1] == 3
     
-    cdef int[:, :, :] po = possible_out
+    possible_out = np.zeros((OUT_N,), dtype=np.int32)
+    
+    cdef int[:,] po = possible_out
     with nogil:
-        r = which_edges_subiso_labeled(&g_full_in[0, 0], 
-                                       &g_sub_in[0, 0], 
-                                       &g_label_in[0], 
-                                       &g_skip[0,0, 0], 
-                                       N, 
-                                       &g_possible_weights[0], 
-                                       PW,
-                                       &po[0,0, 0], max_run_sec)
+        r = which_edges_subiso_labeled(&g_sub_adj[0, 0], 
+                                       &g_sub_colors[0],
+                                        g_sub_adj.shape[0], 
+                                       &g_main_adj[0, 0],
+                                       &g_main_colors[0], 
+                                        g_main_adj.shape[0], 
+                                       &possible_edges[0,0],
+                                        OUT_N, 
+                                       &po[0], maxtime)
     if r == -1:
-        raise RuntimeError("Ran over time")
+        raise RuntimeError("timeout")
     return possible_out
 
 # @cython.boundscheck(False)  # Deactivate bounds checking

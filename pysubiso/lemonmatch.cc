@@ -645,12 +645,15 @@ bool is_subiso_weighted(SmartGraph & g1,
     return is_subiso; 
 }
 
-int which_edges_subiso_labeled(int * g_full_in,
-                               int * g_sub_in,
-                               int * g_label_in, 
-                               int * g_skip, int g_n,
-                               int * possible_weights,
-                               int possible_weight_n, 
+int which_edges_subiso_labeled(
+                               int * g_sub_adj,
+                               int * g_sub_colors,
+                               int g_sub_n, 
+                               int * g_main_adj,
+                               int * g_main_colors,
+                               int g_main_n,
+                               int * candidate_edges,
+                               int candidate_edges_n, 
                                int * possible_edge_out,
                                float max_run_sec)
 {
@@ -658,8 +661,6 @@ int which_edges_subiso_labeled(int * g_full_in,
       Which edges can we add between various nodes
       that are not currently connected. 
 
-      output will be g_n * g_n * possible_weight_n
-      
      */
 
 
@@ -670,16 +671,17 @@ int which_edges_subiso_labeled(int * g_full_in,
     SmartGraph::NodeMap<int> full_g_l(full_g);
     SmartGraph::NodeMap<int> full_g_pos(full_g);
     SmartGraph::EdgeMap<int> full_g_w(full_g); 
-    array_to_g(g_full_in, g_label_in, g_n, full_g,
+    array_to_g(g_main_adj, g_main_colors, g_main_n, full_g,
                full_g_l, full_g_pos, full_g_w);
+    
 
     SmartGraph sub_g; 
     SmartGraph::NodeMap<int> sub_g_l(sub_g);
     SmartGraph::NodeMap<int> sub_g_pos(sub_g);
     SmartGraph::EdgeMap<int> sub_g_w(sub_g);
     
-    array_to_g(g_sub_in, g_label_in,
-               g_n,
+    array_to_g(g_sub_adj, g_sub_colors,
+               g_sub_n,
                sub_g, sub_g_l,
                sub_g_pos, sub_g_w);
 
@@ -690,90 +692,71 @@ int which_edges_subiso_labeled(int * g_full_in,
     SmartGraph::EdgeMap<int> out_map(sub_g);
 
 
-    for (SmartGraph::NodeIt u(sub_g); u != INVALID; ++u) { 
-        for (SmartGraph::NodeIt v(sub_g); v != INVALID; ++v) {
-            for (int weight_i = 0; weight_i < possible_weight_n; ++weight_i) {
-                int proposed_weight = possible_weights[weight_i]; 
-                size_t out_edge_ij = sub_g_pos[u] * g_n + sub_g_pos[v]; 
-                size_t out_edge_ijw = sub_g_pos[u] * g_n * possible_weight_n + sub_g_pos[v]*possible_weight_n + weight_i;
-
-                //std::cout << std::endl << "examiing"  <<  "(" << sub_g_pos[u] << "," << sub_g_pos[v] << ","
-                //          << weight_i <<  " val=" << proposed_weight << ")" ; 
-                if (!(u < v)) {
-                    // not an edge
-                    possible_edge_out[out_edge_ijw] = 0;
-                    //std::cout << " symmetric" ;
-                    continue; 
-                }
-                
-                if (g_skip[out_edge_ijw] > 0) {
-                    // not an edge
-                    possible_edge_out[out_edge_ijw] = 0; 
-                    //std::cout << " skip" ; 
-                    continue; 
-                }
-                //std::cout << " checking (" << sub_g_pos[u]  << "," << sub_g_pos[v] << ")" << std::endl; ; 
-                
-                // copy the graph FIXME is this a place we could use checkpointing?
+    for (int candidate_idx= 0; candidate_idx < candidate_edges_n; ++candidate_idx) {
+        int c_x = candidate_edges[candidate_idx * 3 + 0]; 
+        int c_y = candidate_edges[candidate_idx * 3 + 1]; 
+        int c_c = candidate_edges[candidate_idx * 3 + 2]; 
             
-                SmartGraph candidate_g; 
+            
+        // super-inefficient, just for debugging
+
+        for (SmartGraph::NodeIt u(sub_g); u != INVALID; ++u) { 
+            for (SmartGraph::NodeIt v(sub_g); v != INVALID; ++v) {
+                int proposed_weight = c_c;
+                if ((sub_g_pos[u] == c_x ) & (sub_g_pos[v] == c_y)) {
+                    
+                    SmartGraph candidate_g; 
 
 
-                auto time_end = std::chrono::steady_clock::now();
-                auto duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds> (time_end - time_start);
-                double duration_sec = double(duration_ns.count())/1e9;
-                double remaining_time_sec = max_run_sec - duration_sec; 
-                if( (max_run_sec > 0) & (remaining_time_sec <= 0)) {
-                    return -1; 
-                }
-                
-                SmartGraph::NodeMap<SmartGraph::Node> nr(sub_g);
-                SmartGraph::NodeMap<int> candidate_g_l(candidate_g);
-                SmartGraph::EdgeMap<int> candidate_g_w(candidate_g);
-                GraphCopy<SmartGraph, SmartGraph>
-                    cg(sub_g, candidate_g); 
-                cg.nodeRef(nr)
-                    .nodeMap(sub_g_l, candidate_g_l)
-                    .edgeMap(sub_g_w, candidate_g_w)
-                    .run();
-                
-                SmartGraph::Edge new_edge = findEdge(candidate_g,
-                                                     nr[u], nr[v]);
-                assert(new_edge == INVALID); 
-                new_edge = candidate_g.addEdge(nr[u], nr[v]);
-                candidate_g_w[new_edge] = proposed_weight;
-                SmartGraph::NodeMap<SmartGraph::Node>
-                    dummy_iso(candidate_g, INVALID);
-
-                auto calc_time_start =  std::chrono::steady_clock::now();
-                try {
-                    if(is_subiso_weighted(candidate_g, candidate_g_l, candidate_g_w,
-                                          full_g, full_g_l, full_g_w, dummy_iso, remaining_time_sec)) {
-                        //std::cout << " is subiso"; 
-                        possible_edge_out[out_edge_ijw] = 1;
-                    } else {
-                        //std::cout << " is not subiso"; 
-                        possible_edge_out[out_edge_ijw] = 0;                
+                    auto time_end = std::chrono::steady_clock::now();
+                    auto duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds> (time_end - time_start);
+                    double duration_sec = double(duration_ns.count())/1e9;
+                    double remaining_time_sec = max_run_sec - duration_sec; 
+                    if( (max_run_sec > 0) & (remaining_time_sec <= 0)) {
+                        return -1; 
                     }
-                } catch (const std::runtime_error& error) {
-                    return -1; 
-                }
-                auto calc_time_end =  std::chrono::steady_clock::now();
-
-                auto calc_duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds> (calc_time_end - calc_time_start);
-                float calc_dur_ms = float(calc_duration_ns.count())/1e6;
-                if (calc_dur_ms > 10.0) { 
-                    // std::cout << "checking " << sub_g_pos[u]
-                    //           << " " << sub_g_pos[v]
-                    //           << " " <<  weight_i << " took " << calc_dur_ms
-                    //           << " was subiso? " << possible_edge_out[out_edge_ijw] << std::endl ;
-                }
                 
+                    SmartGraph::NodeMap<SmartGraph::Node> nr(sub_g);
+                    SmartGraph::NodeMap<int> candidate_g_l(candidate_g);
+                    SmartGraph::EdgeMap<int> candidate_g_w(candidate_g);
+                    GraphCopy<SmartGraph, SmartGraph>
+                        cg(sub_g, candidate_g); 
+                    cg.nodeRef(nr)
+                        .nodeMap(sub_g_l, candidate_g_l)
+                        .edgeMap(sub_g_w, candidate_g_w)
+                        .run();
+                    
+                    SmartGraph::Edge new_edge = findEdge(candidate_g,
+                                                         nr[u], nr[v]);
+                    assert(new_edge == INVALID); 
+                    new_edge = candidate_g.addEdge(nr[u], nr[v]);
+                    candidate_g_w[new_edge] = proposed_weight;
+                    SmartGraph::NodeMap<SmartGraph::Node>
+                        dummy_iso(candidate_g, INVALID);
 
+                    auto calc_time_start =  std::chrono::steady_clock::now();
+                    try {
+                        if(is_subiso_weighted(candidate_g, candidate_g_l, candidate_g_w,
+                                              full_g, full_g_l, full_g_w, dummy_iso, remaining_time_sec)) {
+                            //std::cout << " is subiso"; 
+                            possible_edge_out[candidate_idx] = 1;
+                        } else {
+                            //std::cout << " is not subiso"; 
+                            possible_edge_out[candidate_idx] = 0;                
+                        }
+                    } catch (const std::runtime_error& error) {
+                        return -1; 
+                    }
+                    auto calc_time_end =  std::chrono::steady_clock::now();
+                    
+                    auto calc_duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds> (calc_time_end - calc_time_start);
+                    float calc_dur_ms = float(calc_duration_ns.count())/1e6;
+                    
+                    
+                }
             }
         }
     }
-    
     
     return 0; 
 

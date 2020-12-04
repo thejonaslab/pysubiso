@@ -9,7 +9,7 @@ import pytest
 import pysubiso
 
 
-MATCHERS = ['RI']
+MATCHERS = ['RI', 'lemon']
 
 
 def nx_random_graph(N, node_color_n, edge_color_n):
@@ -127,7 +127,7 @@ def test_indsubiso_random_del(matcher):
     m = pysubiso.create_match(matcher)
     np.random.seed(0)
     
-    for _ in range(10000):
+    for _ in range(1000):
                 
         g = random_graph_small()
         g_adj, g_color = nx_to_adj(g)
@@ -139,7 +139,7 @@ def test_indsubiso_random_del(matcher):
 
             g_sub = nx_random_subgraph(g_perm, n)
 
-            g_sub_adj, g_sub_color = nx_to_adj(g)
+            g_sub_adj, g_sub_color = nx_to_adj(g_sub)
             assert m.is_indsubiso(g_sub_adj, g_sub_color,
                                   g_adj, g_color)
         ## randomly delete edges
@@ -147,7 +147,7 @@ def test_indsubiso_random_del(matcher):
 
             g_sub = nx_random_edge_del(g_perm, n)
 
-            g_sub_adj, g_sub_color = nx_to_adj(g)
+            g_sub_adj, g_sub_color = nx_to_adj(g_sub)
             assert m.is_indsubiso(g_sub_adj, g_sub_color,
                                   g_adj, g_color)
 
@@ -233,8 +233,9 @@ def test_simple_edge_add_indsubiso(matcher):
                                 [1, 2, 1]], dtype=np.int32)
     
     valid_indsubiso = m.edge_add_indsubiso(y, y_c, x, x_c, candidate_edges, 1.0)
-    assert valid_indsubiso[0] == 1
-    assert valid_indsubiso[1] == 1
+    print("valid_indsubiso=", valid_indsubiso)
+    assert valid_indsubiso[0]
+    assert valid_indsubiso[1]
 
 
 @pytest.mark.parametrize('matcher', MATCHERS)
@@ -258,7 +259,7 @@ def test_edge_add_indsubiso_random_suite(matcher):
         g_perm = nx_permute(g)
         to_del = np.random.randint(0, len(g_perm.edges)+1)
         g_sub = nx_random_edge_del(g_perm, to_del)
-        g_sub_adj, g_sub_color = nx_to_adj(g)
+        g_sub_adj, g_sub_color = nx_to_adj(g_sub)
 
         candidate_edges =  gen_possible_next_edges(g_sub_adj,
                                                    np.arange(1, np.max(g_color)+1,
@@ -273,7 +274,7 @@ def test_edge_add_indsubiso_random_suite(matcher):
         for res, (i, j, c) in zip(valid_indsubiso, candidate_edges):
             a = g_sub_adj.copy()
             a[i, j] = c
-            
+            print('res=', res, i, j, c)
             assert res == m.is_indsubiso(a, g_sub_color, g_adj, g_color)
 
 #@pytest.mark.xfail

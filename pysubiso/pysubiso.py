@@ -48,11 +48,12 @@ class Match:
                
 
 def create_match(name):
-    if name == 'RI':
+    name = name.lower()
+    if name == 'ri':
         return RIMatch()
 
-    elif name == 'NX':
-        return NXMatch()
+    elif name == 'lemon':
+        return LemonMatch()
 
     raise NotImplementedError(f"unkown {name} matcher")
 
@@ -103,7 +104,57 @@ class RIMatch(Match):
             raise 
         return out_array > 0
 
-                
+class LemonMatch(Match):
+    def __init__(self):
+        pass
+
+    def is_iso(self, g_sub_adj, g_sub_color,
+               g_main_adj, g_main_color,
+               timeout = 1.0):
+        """
+
+
+        """
+
+    def is_indsubiso(self, g_sub_adj, g_sub_color, 
+                     g_main_adj, g_main_color, timeout=1.0):
+        """
+
+
+        """
+
+        
+        wasiso, mapping = lemonwrapper.lemon_subiso_vf2(
+            g_sub_adj, g_sub_color, 
+            g_main_adj, g_main_color, 
+            weighted_edges=True, max_run_sec=timeout)
+
+        return wasiso
+
+    def edge_add_indsubiso(self, g_sub_adj, g_sub_color, 
+                           g_main_adj, g_main_color, 
+                           candidate_edges, timeout=1.0):
+        """
+        candidate_edges: N x 3 list of edges. If we add
+        edge i,j,c to g_sub is the result indsubiso to g_main? 
+        
+        Of course we could just set the value in the adj mat
+        and call ind_subiso but this might be faster in some situations,
+        including moving the loop over possible_edges into C.
+        """
+
+
+        try:
+            out_array = lemonwrapper.which_edges_indsubiso(g_sub_adj, g_sub_color, 
+                                                         g_main_adj, g_main_color, 
+                                                         candidate_edges, 
+                                                         timeout)
+        except Exception as e:  # FIXME clean up this exception handling
+            if str(e) == 'timeout':
+                raise TimeoutError()
+            raise 
+        return out_array > 0
+    
 # class NXMatch(Match):  THIS IS NOT INDUCED SUBISOMORPHISM 
 #     """
 #     Very simple wrapper for equivalent networkx

@@ -7,19 +7,23 @@ extern "C" int subiso_vf2(int * g1_in, int * g1_label_in, int g1_n,  // g1 is th
                           int * matched_nodes, int * matched_nodes_n); 
 
 
-int which_edges_subiso(int * g_full_in,
-                       int * g_sub_in,
-                       int * g_label_in, 
-                       int * g_skip, int g_n,
-                       int * possible_edge_out);
+// int which_edges_subiso(int * g_full_in,
+//                        int * g_sub_in,
+//                        int * g_label_in, 
+//                        int * g_skip, int g_n,
+//                        int * possible_edge_out);
 
-int which_edges_subiso_labeled(int * g_full_in,
-                               int * g_sub_in,
-                               int * g_label_in, 
-                               int * g_skip, int g_n,
-                               int * possible_weights,
-                               int possible_weight_n, 
-                               int * possible_edge_out, float max_run_sec); 
+int which_edges_subiso_labeled(
+                               int * g_sub_adj,
+                               int * g_sub_colors,
+                               int g_sub_n, 
+                               int * g_main_adj,
+                               int * g_main_colors,
+                               int g_main_n,
+                               int * candidate_edges,
+                               int candidate_edges_n, 
+                               int * possible_edge_out,
+                               float max_run_sec);
 
 
 extern "C" int subiso_vf2_multi(// g1 is the subiso query,
