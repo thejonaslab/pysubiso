@@ -7,7 +7,7 @@ import networkx as nx
 import pytest
 
 import pysubiso
-from tqdm import tqdm
+
 
 MATCHERS = ['RI']
 
@@ -158,7 +158,7 @@ def test_indsubiso_data_suite(matcher='RI'):
 
     with gzip.open('data/hardgraphs.pickle.gz', 'rb') as fp:
         test_cases = pickle.load(fp)
-    for test_ix, test_case in tqdm(enumerate(test_cases)):
+    for test_ix, test_case in enumerate(test_cases):
         main_adj = test_case['main_adj'].astype(np.int32)
         sub_adj = test_case['sub_adj'].astype(np.int32)
         main_c = test_case['main_c']
@@ -279,6 +279,10 @@ def test_edge_add_indsubiso_random_suite(matcher):
 #@pytest.mark.xfail
 @pytest.mark.parametrize('matcher', MATCHERS)
 def test_test_edge_add_indsubiso_timeout(matcher):
+    """
+    Generate a very large graph we know will timeout
+    and check that the exception is raised
+    """
     m = pysubiso.create_match(matcher)
     np.random.seed(0)
 
@@ -293,46 +297,15 @@ def test_test_edge_add_indsubiso_timeout(matcher):
     g_sub = nx_random_subgraph(g_perm, graph_size - 10)
     g_sub = nx_random_edge_del(g_sub, 5)
     g_sub_adj, g_sub_color = nx_to_adj(g)
-    print("len(g_sub.edges)=", len(g_sub.edges))
-
 
     candidate_edges = gen_possible_next_edges(g_sub_adj, g_sub_color)
-    print('candidate-edges.shape=', candidate_edges.shape)
 
     with pytest.raises(pysubiso.TimeoutError):
         valid_indsubiso = m.edge_add_indsubiso(g_sub_adj, g_sub_color,
                                                g_adj, g_color,
                                                candidate_edges, 0.1)
 
-# def test_c_is_subiso_fullsuite():
-#     with gzip.open('test.output.pickle.gz', 'rb') as fp:
-#         test_cases = pickle.load(fp)
-#     for test_ix, test_case in tqdm(enumerate(test_cases)):
-#         main_adj = test_case['main_adj'].astype(np.int32)
-#         sub_adj = test_case['sub_adj'].astype(np.int32)
-#         main_c = test_case['main_c']
-#         sub_c = test_case['sub_c']
-#         res = test_case['is_subiso']
-#         assert res == pysubiso.c_is_subiso(sub_adj, sub_c, main_adj, main_c, 10.0), test_ix
 
-# def test_c_which_edges_subiso_labeled_2():
-#     x = np.zeros((3, 3), np.int32)
-#     c = np.zeros(3, np.int32)
-#     x[0, 1] = 1
-#     x[1, 2] = 1
-#     x[0, 2] = 1
-#     x = x + x.T
-
-#     poss_edges = np.zeros_like(x)
-#     pysubiso.c_which_edges_subiso_labeled(x, c, x, c, poss_edges, 1.0)
-#     assert np.sum(poss_edges) == 0
-
-# def test_c_which_edges_subiso_labeled_3():
-#     x = np.zeros((3, 3), np.int32)
-#     c = np.zeros(3, np.int32)
-#     x[0, 1] = 1
-#     x[1, 2] = 1
-#     x = x + x.T
 
 #     poss_edges = np.zeros_like(x)
 #     pysubiso.c_which_edges_subiso_labeled(x, c, x, c, poss_edges, 1.0)
