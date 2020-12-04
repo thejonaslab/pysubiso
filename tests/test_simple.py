@@ -7,6 +7,7 @@ import networkx as nx
 import pytest
 
 import pysubiso
+from tqdm import tqdm
 
 MATCHERS = ['RI']
 
@@ -49,7 +50,7 @@ def nx_permute(g):
 
 def nx_random_subgraph(g, n):
     """
-    Randomly delete n nodes from g. Returns new relabeled graph
+    Randomly delete all but n nodes from g. Returns new relabeled graph
     Note that original node id is stored in attribute old_id
     """
     tgt_nodes = np.random.permutation(len(g.nodes))[:n]
@@ -61,12 +62,14 @@ def nx_random_subgraph(g, n):
 
 def nx_random_edge_del(g, n):
     """
-    Randomly delete n nodes from g. Returns new graph
+    Randomly delete N - n nodes from g. Returns new graph
     Note that original node id is stored in attribute old_id
     """
 
     g = g.copy()
-    tgt_edges = np.random.permutation(g.edges)[:n]
+    N = len(g.edges)
+    assert n <= N
+    tgt_edges = np.random.permutation(g.edges)[:N - n]
     g.remove_edges_from(tgt_edges)
     return g
 
@@ -149,45 +152,130 @@ def test_indsubiso_random_del(matcher):
                                   g_adj, g_color)
 
 
-@pytest.mark.xfail
+def test_indsubiso_data_suite(matcher='RI'):
+
+    m = pysubiso.create_match(matcher)
+
+    with gzip.open('data/hardgraphs.pickle.gz', 'rb') as fp:
+        test_cases = pickle.load(fp)
+    for test_ix, test_case in tqdm(enumerate(test_cases)):
+        main_adj = test_case['main_adj'].astype(np.int32)
+        sub_adj = test_case['sub_adj'].astype(np.int32)
+        main_c = test_case['main_c']
+        sub_c = test_case['sub_c']
+        res = test_case['is_subiso']
+        t1 = time.time()
+        assert res == m.is_indsubiso(sub_adj, sub_c, main_adj, main_c, 0.1), test_ix
+        # t2 = time.time()
+        # runtime = t2-t1
+        # if runtime > 0.001:
+        #     print(test_ix, runtime)            
+        #     res == m.is_indsubiso(sub_adj, sub_c, main_adj, main_c, 0.001)
+
+
+            
+
+## Timeout is incredibly hard to check because the
+## pathological cases are so different between algorithms
+# @pytest.mark.xfail
+# @pytest.mark.parametrize('matcher', MATCHERS)
+# def test_timeout(matcher):
+#     m = pysubiso.create_match(matcher)
+#     np.random.seed(0)
+
+#     graph_size = 1000
+#     node_color_n = 2
+#     edge_color_n = 1
+    
+#     g = nx_random_graph(graph_size, node_color_n, edge_color_n)    
+#     g_adj, g_color = nx_to_adj(g)
+
+#     g_perm = nx_permute(g)
+#     g_sub = nx_random_subgraph(g_perm, graph_size - 10)
+#     g_sub = nx_random_edge_del(g_sub, 50)
+#     g_sub_adj, g_sub_color = nx_to_adj(g)
+
+#     with pytest.raises(pysubiso.TimeoutError):
+#         m.is_indsubiso(g_sub_adj, g_sub_color,
+#                        g_adj, g_color, 0.001)    
+
+
+def gen_possible_next_edges(adj, colors):
+    """
+
+    """
+    out = []
+    for i in range(adj.shape[0]):
+        for j in range(i +1, adj.shape[1]):
+            if adj[i, j] != 0:
+                for c in colors:
+                    out.append([i, j, c])
+    return np.array(out, dtype=np.int32)
+    
 @pytest.mark.parametrize('matcher', MATCHERS)
-def test_timeout(matcher):
+def test_simple_edge_add_indsubiso(matcher):
+    x = np.zeros((3, 3), np.int32)
+    x_c = np.zeros(3, np.int32)
+    x[0, 1] = 1
+    x[1, 2] = 1
+    x = x + x.T
+
+    y = np.zeros((3, 3), np.int32)
+    y_c = np.zeros(3, np.int32)
+    y[0, 1] = 1
+    y = y + y.T
+
+        
+    m = pysubiso.create_match(matcher)
+    assert m.is_indsubiso(y, y_c, x, x_c)
+
+    candidate_edges = np.array([[0, 2, 1],
+                                [1, 2, 1]], dtype=np.int32)
+    
+    valid_indsubiso = m.edge_add_indsubiso(y, y_c, x, x_c, candidate_edges, 1.0)
+    assert valid_indsubiso[0] == 1
+    assert valid_indsubiso[1] == 1
+
+
+@pytest.mark.parametrize('matcher', MATCHERS)
+def test_edge_add_indsubiso_random_suite(matcher):
+    """
+    Generate random graphs, remove random subsets of edges, 
+    check if results subiso. Compares against manual 
+    invocation of matcher. 
+    
+    """
+
+
     m = pysubiso.create_match(matcher)
     np.random.seed(0)
-
-    graph_size = 1000
-    node_color_n = 3
-    edge_color_n = 4
     
-    g = nx_random_graph(graph_size, node_color_n, edge_color_n)    
-    g_adj, g_color = nx_to_adj(g)
+    for _ in range(10000):
+                
+        g = random_graph_small()
+        g_adj, g_color = nx_to_adj(g)
 
-    g_perm = nx_permute(g)
-    g_sub = nx_random_subgraph(g_perm, 980)
-    g_sub_adj, g_sub_color = nx_to_adj(g)
+        g_perm = nx_permute(g)
+        to_del = np.random.randint(0, len(g_perm.edges)+1)
+        g_sub = nx_random_edge_del(g_perm, to_del)
+        g_sub_adj, g_sub_color = nx_to_adj(g)
 
-    with pytest.raises(pysubiso.TimeoutError):
-        m.is_indsubiso(g_sub_adj, g_sub_color,
-                       g_adj, g_color, 0.001)    
-    
+        candidate_edges =  gen_possible_next_edges(g_sub_adj,
+                                                   np.arange(1, np.max(g_color)+1,
+                                                   dtype=np.int32))
+        if len(candidate_edges) == 0:
+            continue
 
-# def test_c_which_edges_subiso_labeled_1():
-#     x = np.zeros((3, 3), np.int32)
-#     c = np.zeros(3, np.int32)
-#     x[0, 1] = 1
-#     x[1, 2] = 1
-#     x = x + x.T
+        valid_indsubiso = m.edge_add_indsubiso(g_sub_adj, g_sub_color,
+                                               g_adj, g_color,
+                                               candidate_edges, 10.0)
+        assert valid_indsubiso.shape[0] == candidate_edges.shape[0]
+        for res, (i, j, c) in zip(valid_indsubiso, candidate_edges):
+            a = g_sub_adj.copy()
+            a[i, j] = c
+            
+            assert res == m.is_indsubiso(a, g_sub_color, g_adj, g_color)
 
-#     y = np.zeros((3, 3), np.int32)
-#     c = np.zeros(3, np.int32)
-#     y[0, 1] = 1
-#     y = y + y.T
-
-#     poss_edges = np.zeros_like(x)
-#     pysubiso.c_which_edges_subiso_labeled(y, c, x, c, poss_edges, 1.0)
-#     assert int(np.sum(poss_edges) / 2) == 2
-#     assert poss_edges[0, 2] == 1
-#     assert poss_edges[1, 2] == 1
 
 # def test_c_is_subiso_fullsuite():
 #     with gzip.open('test.output.pickle.gz', 'rb') as fp:

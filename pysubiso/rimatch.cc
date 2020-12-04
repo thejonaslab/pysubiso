@@ -711,6 +711,9 @@ int is_subiso(int query_N, int * query_adj, int * query_vertlabel,
             &ttriedcouples,
             &tmatchedcouples);
     match_t+=end_time(match_s);
+    if (match_t > 0.001) { 
+        std::cout << "match time = " << match_t <<  " the limit was " << max_time << std::endl;
+    }
     
 //	delete mama;
 //	delete query;
@@ -724,6 +727,7 @@ int is_subiso(int query_N, int * query_adj, int * query_vertlabel,
 	matchcount = matchListener->matchcount;
         
     if (matchListener->timeout) {
+        std::cout << "timeout, yikes" << std::endl; 
         throw std::runtime_error("timeout"); 
     }
 	return matchcount > 0 ;

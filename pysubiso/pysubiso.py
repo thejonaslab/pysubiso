@@ -1,5 +1,8 @@
-from pysubiso import riwrapper
+import numpy as np
 import networkx as nx
+
+
+from pysubiso import riwrapper
 
 class TimeoutError(Exception):
     pass
@@ -27,7 +30,7 @@ class Match:
         """
         raise NotImplementedError()
     
-    def edge_add_indsubsio(g_sub_adj, g_sub_color, 
+    def edge_add_indsubiso(self, g_sub_adj, g_sub_color, 
                            g_main_adj, g_main_color, 
                            possible_edges, timeout=1.0):
         """
@@ -74,20 +77,24 @@ class RIMatch(Match):
         return riwrapper.c_is_indsubiso(g_sub_adj, g_sub_color,
                                         g_main_adj, g_main_color, timeout)
         
-    def edge_add_indsubsio(g_sub_adj, g_sub_color, 
+    def edge_add_indsubiso(self, g_sub_adj, g_sub_color, 
                            g_main_adj, g_main_color, 
-                           possible_edges, timeout=1.0):
+                           candidate_edges, timeout=1.0):
         """
-        possible_edges: N x 3 list of edges. If we add
-        edge i to g_sub is the result indsubiso to g_main? 
+        candidate_edges: N x 3 list of edges. If we add
+        edge i,j,c to g_sub is the result indsubiso to g_main? 
         
         Of course we could just set the value in the adj mat
         and call ind_subiso but this might be faster in some situations,
         including moving the loop over possible_edges into C.
         """
-        
-               
 
+        out_array = np.zeros(len(candidate_edges), dtype=np.int32)
+        riwrapper.c_which_edges_indsubiso(g_sub_adj, g_sub_color, 
+                                          g_main_adj, g_main_color, 
+                                          candidate_edges, out_array,
+                                          timeout)
+        return out_array > 0
 
                 
 # class NXMatch(Match):  THIS IS NOT INDUCED SUBISOMORPHISM 

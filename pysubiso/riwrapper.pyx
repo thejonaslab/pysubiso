@@ -49,22 +49,23 @@ cpdef c_is_indsubiso(
                       &g_main_adj[0,0],
                       &g_main_colors[0], maxtime)
 
-cpdef c_which_edges_subiso_labeled(
+cpdef c_which_edges_indsubiso(
     int[:, :] g_sub_adj,
     int[:] g_sub_colors,
     int[:, :] g_main_adj,
     int[:] g_main_colors,
-    int[:, :] poss_edges_adj,
+    int[:, :] possible_edges,
+    int[:] results,
     float maxtime,
 ):
     """
-    Get which edges that when added to g, preserve subisomorphism to G.
+    Get which edges that when added to g, preserve induced subisomorphism to G.
 
     g_sub_adj: adjacency matrix for subgraph to check
     g_sub_colors: integer labels for each node of subgraph
     g_main_adj: adjacency matrix for full graph
     g_main_colors: integer labels for each node of subgraph
-    poss_edges_adj: adjacency matrix to return results in
+    poss_edges_add : N x 3 list of [i, j, color] of possible next edges
     maxtime: maximum runtime for a single call to is_subiso
     """
     assert g_sub_adj.shape[0] == g_sub_adj.shape[1]
@@ -73,31 +74,30 @@ cpdef c_which_edges_subiso_labeled(
     assert g_main_adj.shape[0] == g_main_adj.shape[1]
     assert len(g_main_colors) == g_main_adj.shape[0]
 
-    assert poss_edges_adj.shape[0] == poss_edges_adj.shape[1]
-    assert g_sub_adj.shape[0] == poss_edges_adj.shape[0]
 
+    assert possible_edges.shape[1] == 3
+    
     cdef int n_sub_nodes = g_sub_adj.shape[0]
     cdef int res
     cdef int[:, :] sub_adj = np.copy(g_sub_adj)
-    for i in range(n_sub_nodes):
-        for j in range(i + 1, n_sub_nodes):
-            if sub_adj[i, j] == 0:  # try adding edge
-                sub_adj[i, j] = 1
-                sub_adj[j, i] = 1
-                res = is_subiso(
-                    g_sub_adj.shape[0],
-                    &sub_adj[0, 0],
-                    &g_sub_colors[0],
-                    g_main_adj.shape[0],
-                    &g_main_adj[0, 0],
-                    &g_main_colors[0],
-                    maxtime
-                )
-                sub_adj[i, j] = 0
-                sub_adj[j, i] = 0
+    for pos, (i, j, c) in enumerate(possible_edges):
+        orig_edge = sub_adj[i, j]
+        sub_adj[i, j] = c
+        sub_adj[j, i] = c # FIXME do we need to do this
 
-                poss_edges_adj[i, j] = res
-                poss_edges_adj[j, i] = res
+        res = is_subiso(
+            g_sub_adj.shape[0],
+            &sub_adj[0, 0],
+            &g_sub_colors[0],
+            g_main_adj.shape[0],
+            &g_main_adj[0, 0],
+            &g_main_colors[0],
+            maxtime
+        )
+        results[pos] = res
+        
+        sub_adj[i, j] = orig_edge
+        sub_adj[j, i] = orig_edge
 
 # def lemon_subiso_vf2(int[:, :] gsub_adj, int[:] gsub_label, 
 #                      int[:, :] gmain_adj, int[:] gmain_label, 

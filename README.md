@@ -66,12 +66,13 @@ portion of the passed in adjaceny matrices
 ## TODO 
 [x] Settle on an API which can switch between backends
 [x] basic migration of RI code to new API 
-[ ] Write networkx wrapper
-[ ] migrate existing tests to new API
-[ ] Create tests 
-[ ] check subiso between differently-sized graphs
+[x] Write networkx impl [IMPOSSIBLE does not support induced subiso]
+[ ] port test suite to good file format
+[x] migrate existing tests to new API
+[x] Create tests 
+[x] check subiso between differently-sized graphs
 [ ] rename everything
-[ ] Set up validation checks with networkx's code
+[ ] fix timeout on subiso matching
 
 ## Development
 Option 1: Local Cython setup

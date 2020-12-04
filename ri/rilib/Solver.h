@@ -154,7 +154,7 @@ public:
                 auto current_time = clock_t::now(); 
                 auto dur = std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time).count();
 
-                if (dur > matchListener.maxtime) { 
+                if (dur > matchListener.maxtime) {
                     timed_out = true;
                     matchListener.timedout(dur); 
                 }
