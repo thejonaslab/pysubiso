@@ -1,5 +1,8 @@
 from pysubiso import riwrapper
+import networkx as nx
 
+class TimeoutError(Exception):
+    pass
 
 class Match:
     def __init__(self):
@@ -16,7 +19,7 @@ class Match:
         raise NotImplementedError()
 
     
-    def is_indsubsio(self, g_sub_adj, g_sub_color, 
+    def is_indsubiso(self, g_sub_adj, g_sub_color, 
                      g_main_adj, g_main_color, timeout=1.0):
         """
 
@@ -44,7 +47,10 @@ def create_match(name):
     if name == 'RI':
         return RIMatch()
 
-    raise NotImplementedError()
+    elif name == 'NX':
+        return NXMatch()
+
+    raise NotImplementedError(f"unkown {name} matcher")
 
 class RIMatch(Match):
     def __init__(self):
@@ -84,3 +90,47 @@ class RIMatch(Match):
 
 
                 
+# class NXMatch(Match):  THIS IS NOT INDUCED SUBISOMORPHISM 
+#     """
+#     Very simple wrapper for equivalent networkx
+#     functionality. To be used as the reference implementation, 
+#     but since on each invocation it creates a graph, is VERY SLOW
+    
+
+#     """ 
+#     def __init__(self):
+#         pass
+
+#     def create_g(self, adj, color):
+#         G = nx.from_numpy_matrix(adj)
+#         print(type(G))
+#         for i, v in enumerate(color):
+#             print('node colors', i, v)
+#             G.nodes[i]['color'] = v
+
+#         for e in G.edges:
+#             print("edge=", e, 'color=', adj[e[0], e[1]])
+#             G.edges[e]['color'] = adj[e[0], e[1]]
+#         return G
+
+
+#     def _node_match(self, n1, n2):
+#         return n1['color'] == n2['color']
+
+#     def _edge_match(self, e1, e2):
+#         return e1['color'] == e2['color']
+
+#     def is_indsubiso(self, g_sub_adj, g_sub_color, 
+#                      g_main_adj, g_main_color, timeout=1.0):
+#         """
+        
+#         """
+#         g_sub = self.create_g(g_sub_adj, g_sub_color)
+#         g_main = self.create_g(g_main_adj, g_main_color)
+        
+
+#         nm = nx.algorithms.isomorphism.GraphMatcher(g_main, g_sub,
+#                                                     node_match = self._node_match,
+#                                                     edge_match = self._edge_match)
+
+#         return nm.subgraph_is_isomorphic()

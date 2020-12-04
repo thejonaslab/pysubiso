@@ -64,8 +64,9 @@ portion of the passed in adjaceny matrices
 
 
 ## TODO 
-[ ] Settle on an API which can switch between backends
-[ ] basic migration of RI code to new API 
+[x] Settle on an API which can switch between backends
+[x] basic migration of RI code to new API 
+[ ] Write networkx wrapper
 [ ] migrate existing tests to new API
 [ ] Create tests 
 [ ] check subiso between differently-sized graphs
