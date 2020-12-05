@@ -609,8 +609,8 @@ int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,
 	//read the query graph
 	//load_s_q=start_time();
     //TIMEHANDLE old_read_start_time = start_time(); 
-	Graph *old_query = new Graph();
-    read_egfu_adj(query_N, query_adj, query_vertlabel, old_query); 
+	// Graph *old_query = new Graph();
+    // read_egfu_adj(query_N, query_adj, query_vertlabel, old_query); 
     //double old_read_time = end_time(old_read_start_time); 
    
     //TIMEHANDLE new_read_start_time = start_time(); 
