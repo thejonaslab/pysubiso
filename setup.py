@@ -4,25 +4,38 @@ from setuptools import setup, Extension, find_packages
 from Cython.Build import cythonize
 import numpy
 
+## use gcc on osx
+# os.environ['CC'] = 'gcc-10'
+# os.environ['CXX'] = 'g++-10'
+
+
 __version__ = '0.0.1'
 
-COMPILE_ARGS = ["-O3", '-std=c++17', '-g']
+COMPILE_ARGS = ["-O3", '-std=c++17', '-g', '-fsanitize=address',
+                '-fno-omit-frame-pointer',
+                
 
+]
+LD_FLAGS = ['-fsanitize=address']
 extensions = []
+# if sys.platform == 'darwin':
+#     COMPILE_ARGS.append('-stdlib=libc++')
 
 ri_sourcefiles = ['pysubiso/riwrapper.pyx', 'pysubiso/rimatch.cc']
 extensions += [Extension("pysubiso.riwrapper", ri_sourcefiles,
-                        include_dirs=['ri/include', 'ri/rilib'],
-                        language="c++",
-                        extra_compile_args=COMPILE_ARGS)]
+                         include_dirs=['ri/include', 'ri/rilib'],
+                         language="c++",
+                         extra_compile_args=COMPILE_ARGS,
+                         extra_link_args = LD_FLAGS, )]
 
 
 
 lemon_sourcefiles = ["pysubiso/lemonwrapper.pyx", "pysubiso/lemonmatch.cc", "pysubiso/graphutil.cc"]
 extensions += [Extension("pysubiso.lemonwrapper", lemon_sourcefiles,
-                        include_dirs=['lemon/', numpy.get_include()],
-                        language="c++",
-                        extra_compile_args=COMPILE_ARGS)]
+                         include_dirs=['lemon/', numpy.get_include()],
+                         language="c++",
+                         extra_compile_args=COMPILE_ARGS, 
+                         extra_link_args = LD_FLAGS, )]
 
 setup(
     name='pysubiso',
