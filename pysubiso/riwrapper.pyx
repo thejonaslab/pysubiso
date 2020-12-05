@@ -145,8 +145,6 @@ cpdef c_which_edges_indsubiso_incremental(
     
     cdef int[:,] po = possible_out
 
-    print("Calling new function")
-
 
     r = which_edges_indsubiso_incremental(g_sub_adj.shape[0],
                                        &g_sub_adj[0, 0], 

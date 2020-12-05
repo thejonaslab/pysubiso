@@ -189,7 +189,7 @@ def test_edge_add_indsubiso_random_suite(matcher):
     m = pysubiso.create_match(matcher)
     np.random.seed(0)
     
-    for rand_instance_i in range(100):
+    for rand_instance_i in range(1000):
                 
         g = random_graph_small()
         g_adj, g_color = nx_to_adj(g)
@@ -214,8 +214,8 @@ def test_edge_add_indsubiso_random_suite(matcher):
             a[i, j] = c
             a[j, i] = c
             manual_res =  m.is_indsubiso(a, g_sub_color, g_adj, g_color)
-            print(rand_instance_i, ":", "edge_i=", i, "edge_j=", j, "edge_c=", c,
-                  "res=", res, "manual res=", manual_res)
+            # print(rand_instance_i, ":", "edge_i=", i, "edge_j=", j, "edge_c=", c,
+            #       "res=", res, "manual res=", manual_res)
             assert res == manual_res
 
 #@pytest.mark.xfail

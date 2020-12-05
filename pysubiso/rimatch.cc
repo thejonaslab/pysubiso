@@ -726,27 +726,56 @@ int which_edges_indsubiso_incremental(int query_N, int * query_adj, int * query_
     Graph * rrg = new Graph();
     read_adj(ref_N, ref_adj, ref_vertlabel, rrg); 
 
+    Graph *query = new Graph();
+    read_adj(query_N, query_adj, query_vertlabel, query, 2);
+    
     
     for (unsigned int possible_i = 0; possible_i < possible_edges_N; ++possible_i) {
-
 
         int new_i = possible_edges[possible_i * 3 + 0];
         int new_j = possible_edges[possible_i * 3 + 1];
         int new_c = possible_edges[possible_i * 3 + 2];
+        //std::cout << "checking " << possible_i << " " << new_i << " " << new_j << " " << new_c <<  std::endl; 
         
-        Graph *query = new Graph();
+        //Graph *query = new Graph();
+        //std::cout << "created new query" << std::endl; 
 
-        // update the adj
-        std::vector<int> tmp_adj(query_N * query_N);
-        memcpy(&tmp_adj[0], query_adj, query_N * query_N * sizeof(int));
+        // create new label
+        int * edge_i_label = (int*)malloc(sizeof(int));
+        *edge_i_label = new_c;
+        //std::cout << "just adding a single little thing" << std::endl;
+        //std::cout << "out_adj_sizes[new_i]=" << query->out_adj_sizes[new_i]  << std::endl; 
+        query->out_adj_list[new_i][query->out_adj_sizes[new_i]] = new_j;
+        query->out_adj_attrs[new_i][query->out_adj_sizes[new_i]] = edge_i_label;
+        query->out_adj_sizes[new_i]++;
+
+        query->in_adj_list[new_j][query->in_adj_sizes[new_j]] = new_i; 
+        query->in_adj_sizes[new_j]++; 
+        //std::cout << "created new query" << std::endl; 
+
+        int * edge_j_label = (int*)malloc(sizeof(int));
+        *edge_j_label = new_c;
+        query->out_adj_list[new_j][query->out_adj_sizes[new_j]] = new_i;
+        query->out_adj_attrs[new_j][query->out_adj_sizes[new_j]] = edge_j_label;
+        query->out_adj_sizes[new_j]++;
+        //std::cout << "created new query" << std::endl; 
+        
+        query->in_adj_list[new_i][query->in_adj_sizes[new_i]] = new_j; 
+        query->in_adj_sizes[new_i]++;
+
+        //std::cout << "created new query" << std::endl; 
+
+        // // update the adj
+        // std::vector<int> tmp_adj(query_N * query_N);
+        // memcpy(&tmp_adj[0], query_adj, query_N * query_N * sizeof(int));
 
         
-        tmp_adj[new_i * query_N + new_j] = new_c; 
-        tmp_adj[new_j * query_N + new_i] = new_c; 
+        // tmp_adj[new_i * query_N + new_j] = new_c; 
+        // tmp_adj[new_j * query_N + new_i] = new_c; 
             
             
         //read_adj(query_N, &tmp_adj[0], query_vertlabel, query);
-        read_adj(query_N, &tmp_adj[0], query_vertlabel, query);
+        //read_adj(query_N, &tmp_adj[0], query_vertlabel, query);
 
     
         //make_mama_s=start_time();
@@ -780,15 +809,23 @@ int which_edges_indsubiso_incremental(int query_N, int * query_adj, int * query_
             throw std::runtime_error("timeout"); 
         }
         
+
+        // then undo this
+        query->out_adj_sizes[new_i]--; 
+        query->out_adj_sizes[new_j]--;
+        query->in_adj_sizes[new_i]--;
+        query->in_adj_sizes[new_j]--; 
+        free(edge_i_label);
+        free(edge_j_label); 
         
         delete mama;
-        delete query;
         delete matchListener;
         // std::cout << "testing new_i=" << new_i << " new_j=" << new_j
         //           << " new_c=" << new_c << " result=" << matchcount << std::endl;
 
     }
         
+    delete query;
     delete rrg; 
 
     delete nodeComparator;
