@@ -460,6 +460,8 @@ int read_adj(unsigned int N, int * adj, int * vertlabel,
   // free(ns_o);
   // free(ns_i);
   // free(ink);
+    free(out_current_pos);
+    free(in_current_pos);
 
   return 0;
 };
@@ -622,10 +624,6 @@ int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,
 
     //compare_graphs(query, my_query); 
 
-    char * ptr = (char*)malloc(100);
-    sprintf(ptr, "%d", 1000);
-    printf("HELLO WORLD %s\n", ptr);
-
 	make_mama_s=start_time();
 	MaMaConstrFirst* mama = new MaMaConstrFirst(*query);
 	mama->build(*query);
@@ -670,6 +668,7 @@ int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,
     
     delete mama;
     delete query;
+    delete rrg; 
     
     delete nodeComparator;
     delete edgeComparator;
