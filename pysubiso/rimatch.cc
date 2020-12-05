@@ -633,8 +633,8 @@ void usage(char* args0){
 // };
 
 
-int is_subiso(int query_N, int * query_adj, int * query_vertlabel,               
-              int ref_N, int * ref_adj, int * ref_vertlabel, float max_time)
+int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,               
+                 int ref_N, int * ref_adj, int * ref_vertlabel, float max_time)
 {
 
     MATCH_TYPE     matchtype = MT_MONO;
@@ -724,9 +724,18 @@ int is_subiso(int query_N, int * query_adj, int * query_vertlabel,
 	matchcount = matchListener->matchcount;
         
     if (matchListener->timeout) {
-        std::cout << "timeout, yikes" << std::endl; 
         throw std::runtime_error("timeout"); 
     }
+
+    double total_t = 0.0;
+    total_t += end_time(total_s);
+    double pct_not_in_match = (1 - match_t / total_t) * 100;
+
+    // if (pct_not_in_match < 30) { 
+    //     std:cout << std::setprecision( 4 )
+    //              << " match_t: " << match_t*1000000 << "us" 
+    //              << " total_t: " << total_t*1000000 << "us"  <<  " " << pct_not_in_match  << "% of time was in non-match" << std::endl;
+    // }
 	return matchcount > 0 ;
 };
 

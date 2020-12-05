@@ -5,7 +5,7 @@ import time
 
 from libcpp.string cimport string
 cdef extern from "rimatch.h":
-   int is_subiso(int query_N, int * query_adj, int * query_vertlabel,               
+   int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,               
                  int ref_N, int * ref_adj, int * ref_vertlabel, float maxtime) except +
 
    # int old_match(string referencefile,
@@ -43,7 +43,7 @@ cpdef c_is_indsubiso(
     assert g_main_adj.shape[0] == g_main_adj.shape[1]
     assert len(g_main_colors) == g_main_adj.shape[0]
 
-    return is_subiso( g_sub_adj.shape[0],
+    return is_indsubiso( g_sub_adj.shape[0],
                       &g_sub_adj[0, 0],
                       &g_sub_colors[0],
                       g_main_adj.shape[0],
@@ -91,7 +91,7 @@ cpdef c_which_edges_indsubiso(
 
         elapsed_time = time.time() - start_time
 
-        res = is_subiso(
+        res = is_indsubiso(
             g_sub_adj.shape[0],
             &sub_adj[0, 0],
             &g_sub_colors[0],

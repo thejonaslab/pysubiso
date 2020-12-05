@@ -6,10 +6,7 @@ import numpy
 
 __version__ = '0.0.1'
 
-COMPILE_ARGS = ["-O3", '-std=c++17']
-if sys.platform == 'darwin':
-    #COMPILE_ARGS.append('-stdlib=libc++')
-    pass
+COMPILE_ARGS = ["-O3", '-std=c++17', '-g']
 
 extensions = []
 
