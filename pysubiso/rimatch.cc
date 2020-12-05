@@ -56,6 +56,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #include <set>
+#include <vector>
 
 using namespace rilib;
 
@@ -249,10 +250,15 @@ int read_egfu_adj(unsigned int N, int * adj, int * vertlabel,
 
 
 int read_adj(unsigned int N, int * adj, int * vertlabel, 
-                  Graph* graph){
+             Graph* graph, int extra_edge_pad = 0){
     /*
       New code for reading an adjaceny matrix of labeled nodes
       and edges. 
+
+      extra_edge_pad adds that many entries onto every array
+      designed to handle some number of edges, so we can 
+      later do incremental edge addition and removal 
+      
      */
     
     graph->nof_nodes = N;
@@ -303,10 +309,10 @@ int read_adj(unsigned int N, int * adj, int * vertlabel,
         //reading degree and successors of vertex i
         // out_adj_list is just an array that maps node-> list of out edge node ids
         
-        graph->out_adj_list[i] = (int*)calloc(graph->out_adj_sizes[i], sizeof(int));
-     	graph->out_adj_attrs[i] = (void**)malloc(graph->out_adj_sizes[i] * sizeof(void*));
+        graph->out_adj_list[i] = (int*)calloc(graph->out_adj_sizes[i] + extra_edge_pad, sizeof(int));
+     	graph->out_adj_attrs[i] = (void**)malloc((graph->out_adj_sizes[i] + extra_edge_pad) * sizeof(void*));
 
-     	graph->in_adj_list[i] = (int*)calloc(graph->in_adj_sizes[i], sizeof(int));
+     	graph->in_adj_list[i] = (int*)calloc(graph->in_adj_sizes[i] + extra_edge_pad, sizeof(int));
     }
     for (unsigned int i=0; i < N; i++){
     
@@ -694,6 +700,115 @@ int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,
     delete matchListener; 
 	return matchcount > 0 ;
 };
+
+
+int which_edges_indsubiso_incremental(int query_N, int * query_adj, int * query_vertlabel,               
+                                      int ref_N, int * ref_adj, int * ref_vertlabel,
+                                      int possible_edges_N, int * possible_edges,
+                                      int * possible_edges_out, 
+                                      float max_time)
+{
+
+    MATCH_TYPE     matchtype = MT_MONO;
+    
+	TIMEHANDLE match_s, total_s;
+    double make_mama_t=0;
+    double match_t=0; //double total_t=0;
+	total_s=start_time();
+
+	//int rret;
+
+    AttributeComparator* nodeComparator;			//to compare node labels
+    AttributeComparator* edgeComparator;			//to compare edge labels
+    nodeComparator = new IntAttrComparator("node");
+    edgeComparator = new IntAttrComparator("edge");
+
+    Graph * rrg = new Graph();
+    read_adj(ref_N, ref_adj, ref_vertlabel, rrg); 
+
+    
+    for (unsigned int possible_i = 0; possible_i < possible_edges_N; ++possible_i) {
+
+
+        int new_i = possible_edges[possible_i * 3 + 0];
+        int new_j = possible_edges[possible_i * 3 + 1];
+        int new_c = possible_edges[possible_i * 3 + 2];
+        
+        Graph *query = new Graph();
+
+        // update the adj
+        std::vector<int> tmp_adj(query_N * query_N);
+        memcpy(&tmp_adj[0], query_adj, query_N * query_N * sizeof(int));
+
+        
+        tmp_adj[new_i * query_N + new_j] = new_c; 
+        tmp_adj[new_j * query_N + new_i] = new_c; 
+            
+            
+        //read_adj(query_N, &tmp_adj[0], query_vertlabel, query);
+        read_adj(query_N, &tmp_adj[0], query_vertlabel, query);
+
+    
+        //make_mama_s=start_time();
+        MaMaConstrFirst* mama = new MaMaConstrFirst(*query);
+        mama->build(*query);
+        // make_mama_t+=end_time(make_mama_s);
+
+
+        long matchcount = 0; 		
+        
+        MatchListener* matchListener=new EmptyMatchListener(max_time);
+        long tsteps = 0, ttriedcouples = 0, tmatchedcouples = 0;
+
+
+        match(	*rrg,
+                *query,
+                *mama,
+                *matchListener,
+                matchtype,
+                *nodeComparator,
+                *edgeComparator,
+                &tsteps,
+                &ttriedcouples,
+                &tmatchedcouples);
+
+        matchcount = matchListener->matchcount;
+
+        possible_edges_out[possible_i] = (matchcount > 0);
+
+        if (matchListener->timeout) {
+            throw std::runtime_error("timeout"); 
+        }
+        
+        
+        delete mama;
+        delete query;
+        delete matchListener;
+        // std::cout << "testing new_i=" << new_i << " new_j=" << new_j
+        //           << " new_c=" << new_c << " result=" << matchcount << std::endl;
+
+    }
+        
+    delete rrg; 
+
+    delete nodeComparator;
+    delete edgeComparator;
+        
+
+
+        
+
+    double total_t = 0.0;
+    total_t += end_time(total_s);
+    double pct_not_in_match = (1 - match_t / total_t) * 100;
+
+
+	return 0; 
+};
+
+
+
+
 
 
 

@@ -78,6 +78,9 @@ portion of the passed in adjaceny matrices
 [x] port lemon over
 [ ] benchmark both
 [ ] Clean up code to explort canonical graphs to benchmark
+[ ] Make sure we are using nogil in all the right places
+[ ] be sure to handle deleting of objects if exception gets thrown
+[ ] Make it very clear what things expect upper-triangular vs mymmetric matrices
 
 ## Development
 Option 1: Local Cython setup
