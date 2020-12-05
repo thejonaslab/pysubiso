@@ -66,7 +66,7 @@ portion of the passed in adjaceny matrices
 ## TODO 
 [x] Settle on an API which can switch between backends
 [x] basic migration of RI code to new API 
-[x] Write networkx impl [IMPOSSIBLE does not support induced subiso]
+[x] ~Write networkx impl [IMPOSSIBLE does not support induced subiso]~
 [ ] port test suite to good file format
 [x] migrate existing tests to new API
 [x] Create tests 
@@ -74,9 +74,10 @@ portion of the passed in adjaceny matrices
 [ ] rename everything
 [ ] fix timeout on subiso matching
 [ ] normalize / unify test suite function naming
-[ ] split out nx helper funcs to a different module
-[ ] port lemon over
+[x] split out nx helper funcs to a different module
+[x] port lemon over
 [ ] benchmark both
+[ ] Clean up code to explort canonical graphs to benchmark
 
 ## Development
 Option 1: Local Cython setup
