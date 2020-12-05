@@ -16,7 +16,7 @@ COMPILE_ARGS = ["-O3", '-std=c++17', '-g',
 
 LD_FLAGS = []
 
-USE_SANITIZER = True
+USE_SANITIZER = False
 if USE_SANITIZER:
     COMPILE_ARGS.append('-fsanitize=address')
     LD_FLAGS.append('-fsanitize=address')

@@ -647,7 +647,7 @@ int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,
     //bool rreaded = true;
     //load_s=start_time();
     Graph * rrg = new Graph();
-    read_egfu_adj(ref_N, ref_adj, ref_vertlabel, rrg); 
+    read_adj(ref_N, ref_adj, ref_vertlabel, rrg); 
 
     //run the matching
     match_s=start_time();
@@ -688,6 +688,8 @@ int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,
     //              << " match_t: " << match_t*1000000 << "us" 
     //              << " total_t: " << total_t*1000000 << "us"  <<  " " << pct_not_in_match  << "% of time was in non-match" << std::endl;
     // }
+
+    delete matchListener; 
 	return matchcount > 0 ;
 };
 

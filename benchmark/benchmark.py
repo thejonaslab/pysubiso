@@ -54,6 +54,14 @@ EXPERIMENTS = {'debug_100' : {'files' : ['/tmp/slow_graphs.00000000.tar.gz'],
                # 'debug_400' : {'files' : ['/tmp/slow_graphs.00000000.tar.gz'],
                #            'matchers' : ['ri', 'lemon'],
                #            'num' : 400}
+
+               'benchmark_100' : {'files' : ['all_graphs.00000000.tar.gz',
+                                             
+               ],
+                                  'matchers' : ['ri', 'lemon'],
+                                  'timeout' : 1.0, 
+                                   'num' : 100},               
+
 }
 
 def params():
