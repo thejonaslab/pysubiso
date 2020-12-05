@@ -624,9 +624,8 @@ int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,
 
     char * ptr = (char*)malloc(100);
     sprintf(ptr, "%d", 1000);
-    printf("%s", ptr);
+    printf("HELLO WORLD %s\n", ptr);
 
-    
 	make_mama_s=start_time();
 	MaMaConstrFirst* mama = new MaMaConstrFirst(*query);
 	mama->build(*query);

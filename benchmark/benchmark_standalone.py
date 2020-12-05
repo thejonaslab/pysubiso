@@ -8,8 +8,6 @@ import numpy as np
 import time
 import pickle
 
-from tqdm import tqdm
-import pandas as pd
 
 def possible_edges(g, color_labels=[1, 2, 3, 4]):
     """
@@ -33,13 +31,13 @@ def run_exp(infiles, outfile, exp_name, ec, matcher, num, TIMEOUT):
     m = pysubiso.create_match(matcher)
 
     log = []
-    
+
     for filename in infiles:
         tf_load = tarfile.open(filename, mode='r:gz') 
         n = tf_load.getnames()[:num]
 
         pairs = [os.path.dirname(s) for s in n]
-        for p in tqdm(pairs):
+        for p in pairs:
             main = tf_load.extractfile(p + "/main.graphml").read()
             sub = tf_load.extractfile(p + "/sub.graphml").read()
             g_main = nx.parse_graphml(main, node_type=int)
@@ -48,8 +46,7 @@ def run_exp(infiles, outfile, exp_name, ec, matcher, num, TIMEOUT):
             g_adj, g_color = util.nx_to_adj(g_main)
 
             g_sub_adj, g_sub_color = util.nx_to_adj(g_sub)
-            if g_adj.shape[0] < 28:
-                continue
+
             candidate_edges = possible_edges(g_sub)
 
             t1 = time.time()
@@ -58,7 +55,9 @@ def run_exp(infiles, outfile, exp_name, ec, matcher, num, TIMEOUT):
                 valid_indsubiso = m.edge_add_indsubiso(g_sub_adj, g_sub_color,
                                                        g_adj, g_color,
                                                        candidate_edges, TIMEOUT)
-            except:
+            except Exception as e:
+                print("timeout?")
+                print(e)
                 timeout = True
                 pass
             t2 = time.time()
@@ -72,13 +71,13 @@ def run_exp(infiles, outfile, exp_name, ec, matcher, num, TIMEOUT):
                         "g_main_nodes" : len(g_main.nodes),
                         "g_sub_nodes" : len(g_sub.nodes)})
 
-    df = pd.DataFrame(log)
-    pickle.dump(df, open(outfile, 'wb'))
+    # df = pd.DataFrame(log)
+    # pickle.dump(df, open(outfile, 'wb'))
 
 
 if __name__ == "__main__":
 
-    infiles = ['all_graphs.00000000.tar.gz',
+    infiles = ['benchmark/all_graphs.00000000.tar.gz',
                #'all_graphs.00000001.tar.gz',
                #'all_graphs.00000002.tar.gz',
                #'all_graphs.00000003.tar.gz',

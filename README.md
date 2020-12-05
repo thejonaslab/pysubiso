@@ -104,3 +104,10 @@ Running tests (after installation):
 
 ## Lemon notes
 
+
+## Sanitize notes
+
+
+https://stackoverflow.com/questions/55692357/address-sanitizer-on-a-python-extension
+https://jonasdevlieghere.com/sanitizing-python-modules/
+

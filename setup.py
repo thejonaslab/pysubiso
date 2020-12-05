@@ -5,18 +5,23 @@ from Cython.Build import cythonize
 import numpy
 
 ## use gcc on osx
-# os.environ['CC'] = 'gcc-10'
-# os.environ['CXX'] = 'g++-10'
+# os.environ['CC'] = '/usr/local/gcc/10.2.0/bin/gcc'
+# os.environ['CXX'] = '/usr/local/gcc/10.2.0/bin/g++'
 
 
 __version__ = '0.0.1'
 
-COMPILE_ARGS = ["-O3", '-std=c++17', '-g', '-fsanitize=address',
-                '-fno-omit-frame-pointer',
-                
+COMPILE_ARGS = ["-O3", '-std=c++17', '-g',  
+                '-fno-omit-frame-pointer', '-fPIC', '-g3', ]
 
-]
-LD_FLAGS = ['-fsanitize=address']
+LD_FLAGS = []
+
+USE_SANITIZER = True
+if USE_SANITIZER:
+    COMPILE_ARGS.append('-fsanitize=address')
+    LD_FLAGS.append('-fsanitize=address')
+
+
 extensions = []
 # if sys.platform == 'darwin':
 #     COMPILE_ARGS.append('-stdlib=libc++')
