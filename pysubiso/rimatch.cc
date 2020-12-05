@@ -619,6 +619,7 @@ int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,
     //TIMEHANDLE new_read_start_time = start_time(); 
 	Graph *query = new Graph();
     read_adj(query_N, query_adj, query_vertlabel, query);
+    //read_adj(query_N, query_adj, query_vertlabel, query);
     //double new_read_time = end_time(new_read_start_time);
     //std::cout << "old read: " << old_read_time * 1e6 << "us, new read" << new_read_time * 1e6 << " us" << std::endl; 
 
@@ -647,6 +648,7 @@ int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,
     //bool rreaded = true;
     //load_s=start_time();
     Graph * rrg = new Graph();
+    //read_adj(ref_N, ref_adj, ref_vertlabel, rrg); 
     read_adj(ref_N, ref_adj, ref_vertlabel, rrg); 
 
     //run the matching

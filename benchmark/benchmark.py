@@ -55,7 +55,7 @@ EXPERIMENTS = {'debug_100' : {'files' : ['/tmp/slow_graphs.00000000.tar.gz'],
                #            'matchers' : ['ri', 'lemon'],
                #            'num' : 400}
 
-               'benchmark_100' : {'files' : ['all_graphs.00000000.tar.gz',
+               'benchmark_old_100' : {'files' : ['all_graphs.00000000.tar.gz',
                                              
                ],
                                   'matchers' : ['ri', 'lemon'],
