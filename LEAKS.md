@@ -30,7 +30,7 @@ machine, and pip does a proper local install.
 Then to run it:
 
 ```
-LD_PRELOAD=/usr/lib/gcc/x86_64-linux-gnu/7/libasan.so /usr/bin/python3 benchmark/benchmark_standalone.py
+LD_PRELOAD=/usr/lib/gcc/x86_64-linux-gnu/7/libasan.so /usr/bin/python3 benchmark/benchmark_standalone.py > mem.log 2>&1 
 ```
 
 Then, there will be lots of false positives as by default the python interpreter does
