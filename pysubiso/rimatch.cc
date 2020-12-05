@@ -61,187 +61,36 @@ using namespace rilib;
 
 void usage(char* args0);
 
+/*
+  A quick guide to graph:
+
+  Graph appears to represent the graph as an array
+  o
+
+  nof_nodes : number of nodes (int)
+  node_attrs: array of pointers to whatever the node labels are 
+              (in our case ints)
 
 
-// int old_read_egfu(const char* fileName, FILE* fd, Graph* graph){
-// 	char str[STR_READ_LENGTH];
-// 	unsigned int i,j;
+  unsigned int* out_adj_sizes : array of the number of out-edges for each node
+  unsigned int* in_adj_sizes; array of the number of in-edges for each node
 
-// 	if (fscanf(fd,"%s",str) != 1){	//#graphname
-// 		return -1;
-// 	}
-// 	if (fscanf(fd,"%d",&(graph->nof_nodes)) != 1){//nof nodes
-// 		return -1;
-// 	}
+  these are the same due to our graphs being undirected
 
-// 	//node labels
-// 	graph->nodes_attrs = (void**)malloc(graph->nof_nodes * sizeof(void*));
-// 	char *label = new char[STR_READ_LENGTH];
-// 	for(i=0; i<graph->nof_nodes; i++){
-// 		if (fscanf(fd,"%s",label) != 1){
-// 			return -1;
-// 		}
-//     graph->nodes_attrs[i] = (char*)malloc((strlen(label) + 1) * sizeof(char));
-//     strcpy((char*)graph->nodes_attrs[i], label);
-// 	}
+  int** out_adj_list : array of arrays of out edges 
+  int** in_adj_list : array of arrays of in edges
+  void*** out_adj_attrs; array of arrays of pointers to edge properties
 
-// 	//edges
-// 	graph->out_adj_sizes = (unsigned int*)calloc(graph->nof_nodes, sizeof(int));
-// 	graph->in_adj_sizes = (unsigned int*)calloc(graph->nof_nodes, sizeof(int));
-
-// 	egr_neighs_t **ns_o = (egr_neighs_t**)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
-//   egr_neighs_t **ns_i = (egr_neighs_t**)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
-// 	for(i=0; i<graph->nof_nodes; i++){
-// 		ns_o[i] = NULL;
-//     ns_i[i] = NULL;
-// 	}
-// 	unsigned int temp = 0;
-// 	if (fscanf(fd,"%d",&temp) != 1){//number of edges
-// 		return -1;
-// 	}
-
-// 	int es = 0, et = 0;
-// 	for(i=0; i<temp; i++){
-// 		if (fscanf(fd,"%d",&es) != 1){//source node
-// 			return -1;
-// 		}
-// 		if (fscanf(fd,"%d",&et) != 1){//target node
-// 			return -1;
-// 		}
-// 		if (fscanf(fd,"%s",label) != 1){
-// 			return -1;
-// 		}
-
-// 		graph->out_adj_sizes[es]++;
-// 		graph->in_adj_sizes[et]++;
-
-// 		if(ns_o[es] == NULL){
-// 			ns_o[es] = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-// 			ns_o[es]->nid = et;
-// 			ns_o[es]->next = NULL;
-// 			ns_o[es]->label = (char*)malloc((strlen(label) + 1) * sizeof(char));
-//       strcpy(ns_o[es]->label, label);
-// 		}
-// 		else{
-// 			egr_neighs_t* n = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-// 			n->nid = et;
-// 			n->next = (struct egr_neighs_t*)ns_o[es];
-//       n->label = (char*)malloc((strlen(label) + 1) * sizeof(char));
-//       strcpy(n->label, label);
-// 			ns_o[es] = n;
-// 		}
-
-// 		graph->out_adj_sizes[et]++;
-// 		graph->in_adj_sizes[es]++;
-
-// 		if(ns_o[et] == NULL){
-// 			ns_o[et] = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-// 			ns_o[et]->nid = es;
-// 			ns_o[et]->next = NULL;
-//       ns_o[et]->label = (char*)malloc((strlen(label) + 1) * sizeof(char));
-//       strcpy((char*)ns_o[et]->label, label);
-// 		}
-// 		else{
-// 			egr_neighs_t* n = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-// 			n->nid = es;
-// 			n->next = (struct egr_neighs_t*)ns_o[et];
-//       n->label = (char*)malloc((strlen(label) + 1) * sizeof(char));
-//       strcpy((char*)n->label, label);
-// 			ns_o[et] = n;
-// 		}
-
-// 	}
-
-
-// 	graph->out_adj_list = (int**)malloc(graph->nof_nodes * sizeof(int*));
-// 	graph->in_adj_list = (int**)malloc(graph->nof_nodes * sizeof(int*));
-// 	graph->out_adj_attrs = (void***)malloc(graph->nof_nodes * sizeof(void**));
-
-// 	int* ink = (int*)calloc(graph->nof_nodes, sizeof(int));
-// 	for (i=0; i<graph->nof_nodes; i++){
-// 		graph->in_adj_list[i] = (int*)calloc(graph->in_adj_sizes[i], sizeof(int));
-
-// 	}
-// 	for (i=0; i<graph->nof_nodes; i++){
-// 		// reading degree and successors of vertex i
-// 		graph->out_adj_list[i] = (int*)calloc(graph->out_adj_sizes[i], sizeof(int));
-// 		graph->out_adj_attrs[i] = (void**)malloc(graph->out_adj_sizes[i] * sizeof(void*));
-
-// 		egr_neighs_t *n = ns_o[i];
-// 		for (j=0; j<graph->out_adj_sizes[i]; j++){
-// 			graph->out_adj_list[i][j] = n->nid;
-//             // int * label = (int*)calloc(n->label, sizeof(int));
-//             // *label = n->label; 
-//             std::cout << "the label is " << n->label << std::endl;
-// 			graph->out_adj_attrs[i][j] = n->label;
-
-// 			graph->in_adj_list[n->nid][ink[n->nid]] = i;
-
-// 			ink[n->nid]++;
-
-// 			n = n->next;
-// 		}
-// 	}
-
-// //	graph->sort_edges();
-
-
-
-// 	for(unsigned int i=0; i<graph->nof_nodes; i++){
-// 		if(ns_o[i] != NULL){
-// 			egr_neighs_t *p = NULL;
-// 			egr_neighs_t *n = ns_o[i];
-// 			for (j=0; j<graph->out_adj_sizes[i]; j++){
-// 				if(p!=NULL)
-// 					free(p);
-// 				p = n;
-// 				n = n->next;
-// 			}
-// 			if(p!=NULL)
-// 			free(p);
-// 		}
-
-// 		if(ns_i[i] != NULL){
-// 			egr_neighs_t *p = NULL;
-// 			egr_neighs_t *n = ns_i[i];
-// 			for (j=0; j<graph->out_adj_sizes[i]; j++){
-// 				if(p!=NULL)
-// 					free(p);
-// 				p = n;
-// 				n = n->next;
-// 			}
-// 			if(p!=NULL)
-// 			free(p);
-// 		}
-
-
-// //			free(ns_o);
-// //			free(ns_i);
-// 	}
-  
-//   free(ns_o);
-//   free(ns_i);
-//   free(ink);
-//   delete[] label;
-// 	return 0;
-// };
+ */
 
 int read_egfu_adj(unsigned int N, int * adj, int * vertlabel, 
                   Graph* graph){
-	//char str[STR_READ_LENGTH];
-	unsigned int i,j;
-
-	// if (fscanf(fd,"%s",str) != 1){	//#graphname
-	// 	return -1;
-	// }
-	// if (fscanf(fd,"%d",&(graph->nof_nodes)) != 1){//nof nodes
-	// 	return -1;
-	// }
     graph->nof_nodes = N;
 
     
-	//node labels
-    // FIXME integers or arrays of integers? 
+	// Allocate the space for the node labels and set the values.
+    // Our node labels are only integers
+
 	graph->nodes_attrs = (void**)malloc(graph->nof_nodes * sizeof(void*));
 	// char *label = new char[STR_READ_LENGTH];
     for(i=0; i<graph->nof_nodes; i++){
@@ -259,17 +108,19 @@ int read_egfu_adj(unsigned int N, int * adj, int * vertlabel,
 		ns_o[i] = NULL;
         ns_i[i] = NULL;
 	}
-	int temp = 0;
-    for (i = 0; i < N; i++) {
-        for (j = i + 1; j < N; j++) {
-            if (adj[i * N + j]  > 0) {
-                temp += 1; 
-            }
-        }
-    }
 
-    for (i = 0; i < N; i++) {
-        for (j = i + 1; j < N; j++) {
+
+
+    // I think this constructs two arrays of egr_neighs_t:
+    //   one for in-edges
+    //   one for out-edges
+    // on a per-node basis
+    // and then puts a linked list of the edges in each one
+    //
+    // It's not clear if the actual arrays ns_o and ns_i are stored in the graph? 
+    
+    for (unsigned int i = 0; i < N; i++) {
+        for (unsigned int j = i + 1; j < N; j++) {
             int label = adj[i * N + j];
             if (label  > 0) {
                 // std::cout << "label i=" << i << " j=" << j
@@ -283,6 +134,7 @@ int read_egfu_adj(unsigned int N, int * adj, int * vertlabel,
                 graph->in_adj_sizes[et]++;
 
                 if(ns_o[es] == NULL){
+                    // create the head of the list (next = NULL)
                     ns_o[es] = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
                     ns_o[es]->nid = et;
                     ns_o[es]->next = NULL;
@@ -290,6 +142,9 @@ int read_egfu_adj(unsigned int N, int * adj, int * vertlabel,
                     *(ns_o[es]->label) = label;
                 }
                 else{
+                    // create a new list element and add it to the head
+                    // of the list (n->next points to previous head) 
+
                     egr_neighs_t* n = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
                     n->nid = et;
                     n->next = (struct egr_neighs_t*)ns_o[es];
@@ -334,14 +189,16 @@ int read_egfu_adj(unsigned int N, int * adj, int * vertlabel,
 	}
 	for (i=0; i<graph->nof_nodes; i++){
 		// reading degree and successors of vertex i
+        // out_adj_list is just an array that maps node-> list of out edge node ids
+        
 		graph->out_adj_list[i] = (int*)calloc(graph->out_adj_sizes[i], sizeof(int));
 		graph->out_adj_attrs[i] = (void**)malloc(graph->out_adj_sizes[i] * sizeof(void*));
 
 		egr_neighs_t *n = ns_o[i];
 		for (j=0; j<graph->out_adj_sizes[i]; j++){
-			graph->out_adj_list[i][j] = n->nid;
+			graph->out_adj_list[i][j] = n->nid; // this is just an int? 
 
-			graph->out_adj_attrs[i][j] = n->label;
+			graph->out_adj_attrs[i][j] = n->label; // this is a pointer right? 
 			graph->in_adj_list[n->nid][ink[n->nid]] = i;
 
 			ink[n->nid]++;
@@ -350,11 +207,8 @@ int read_egfu_adj(unsigned int N, int * adj, int * vertlabel,
 		}
 	}
 
-    //graph->print();
-//	graph->sort_edges();
 
-
-    
+    // Does this now delete all the ns_o ns_i elements? 
 	for(unsigned int i=0; i<graph->nof_nodes; i++){
 		if(ns_o[i] != NULL){
 			egr_neighs_t *p = NULL;
@@ -383,14 +237,12 @@ int read_egfu_adj(unsigned int N, int * adj, int * vertlabel,
 		}
 
 
-//			free(ns_o);
-//			free(ns_i);
 	}
   
   free(ns_o);
   free(ns_i);
   free(ink);
-  //delete[] label;
+
   return 0;
 };
 
