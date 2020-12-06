@@ -228,7 +228,7 @@ def test_test_edge_add_indsubiso_timeout(matcher):
     m = pysubiso.create_match(matcher)
     np.random.seed(0)
 
-    graph_size = 40
+    graph_size = 80
     node_color_n = 2
     edge_color_n = 1
     
