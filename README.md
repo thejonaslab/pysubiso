@@ -72,7 +72,7 @@ portion of the passed in adjaceny matrices
 [x] Create tests 
 [x] check subiso between differently-sized graphs
 [ ] rename everything
-[ ] fix timeout on subiso matching
+[x] fix timeout on subiso matching
 [ ] normalize / unify test suite function naming
 [x] split out nx helper funcs to a different module
 [x] port lemon over
@@ -81,6 +81,7 @@ portion of the passed in adjaceny matrices
 [ ] Make sure we are using nogil in all the right places
 [ ] be sure to handle deleting of objects if exception gets thrown
 [ ] Make it very clear what things expect upper-triangular vs mymmetric matrices
+[ ] faster which-next-edges
 
 ## Development
 Option 1: Local Cython setup
