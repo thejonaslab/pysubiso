@@ -28,7 +28,7 @@ extensions = []
 
 ri_sourcefiles = ['pysubiso/riwrapper.pyx', 'pysubiso/rimatch.cc']
 extensions += [Extension("pysubiso.riwrapper", ri_sourcefiles,
-                         include_dirs=['ri/include', 'ri/rilib'],
+                         include_dirs=['ri/include', 'ri/rilib', numpy.get_include()],
                          language="c++",
                          extra_compile_args=COMPILE_ARGS,
                          extra_link_args = LD_FLAGS, )]

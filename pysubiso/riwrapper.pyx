@@ -2,17 +2,18 @@
 # distutils: language = c++
 import numpy as np
 import time
+cimport numpy as cnp
 
 from libcpp.string cimport string
 cdef extern from "rimatch.h":
    int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,               
-                 int ref_N, int * ref_adj, int * ref_vertlabel, float maxtime) except +
+                 int ref_N, int * ref_adj, int * ref_vertlabel, float maxtime) nogil except +
 
    int which_edges_indsubiso_incremental(int query_N, int * query_adj, int * query_vertlabel,               
                                          int ref_N, int * ref_adj, int * ref_vertlabel,
                                          int possible_edges_N, int * possible_edges,
                                          int * possible_edges_out, 
-                                         float max_time) except + ;
+                                         float max_time) nogil except +
    
 
 

@@ -85,169 +85,6 @@ void usage(char* args0);
 
  */
 
-int read_egfu_adj(unsigned int N, int * adj, int * vertlabel, 
-                  Graph* graph){
-    graph->nof_nodes = N;
-
-    
-	// Allocate the space for the node labels and set the values.
-    // Our node labels are only integers
-
-	graph->nodes_attrs = (void**)malloc(graph->nof_nodes * sizeof(void*));
-	// char *label = new char[STR_READ_LENGTH];
-    for(unsigned int i=0; i<graph->nof_nodes; i++){
-        graph->nodes_attrs[i] = (int*)malloc(sizeof(int));
-        *((int*)graph->nodes_attrs[i]) = vertlabel[i]; 
-	}
-
-	//edges
-	graph->out_adj_sizes = (unsigned int*)calloc(graph->nof_nodes, sizeof(int));
-	graph->in_adj_sizes = (unsigned int*)calloc(graph->nof_nodes, sizeof(int));
-
-	egr_neighs_t **ns_o = (egr_neighs_t**)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
-    egr_neighs_t **ns_i = (egr_neighs_t**)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
-	for(unsigned int i=0; i<graph->nof_nodes; i++){
-		ns_o[i] = NULL;
-        ns_i[i] = NULL;
-	}
-
-
-
-    // I think this constructs two arrays of egr_neighs_t:
-    //   one for in-edges
-    //   one for out-edges
-    // on a per-node basis
-    // and then puts a linked list of the edges in each one
-    //
-    // It's not clear if the actual arrays ns_o and ns_i are stored in the graph? 
-    
-    for (unsigned int i = 0; i < N; i++) {
-        for (unsigned int j = i + 1; j < N; j++) {
-            int label = adj[i * N + j];
-            if (label  > 0) {
-                // std::cout << "label i=" << i << " j=" << j
-                //           << " N=" << N << " label:" << label <<  std::endl;
-
-                int es = i;
-                int et = j;
-
-                // one direction
-                graph->out_adj_sizes[es]++;
-                graph->in_adj_sizes[et]++;
-
-                if(ns_o[es] == NULL){
-                    // create the head of the list (next = NULL)
-                    ns_o[es] = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-                    ns_o[es]->nid = et;
-                    ns_o[es]->next = NULL;
-                    ns_o[es]->label = (int*)malloc(sizeof(int));
-                    *(ns_o[es]->label) = label;
-                }
-                else{
-                    // create a new list element and add it to the head
-                    // of the list (n->next points to previous head) 
-
-                    egr_neighs_t* n = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-                    n->nid = et;
-                    n->next = (struct egr_neighs_t*)ns_o[es];
-                    n->label =  (int*)malloc(sizeof(int));
-                    *(n->label) = label; 
-                    ns_o[es] = n;
-                }
-
-                // the other direction
-                graph->out_adj_sizes[et]++;
-                graph->in_adj_sizes[es]++;
-                
-                if(ns_o[et] == NULL){
-                    ns_o[et] = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-                    ns_o[et]->nid = es;
-                    ns_o[et]->next = NULL;
-                    ns_o[et]->label = (int*)malloc(sizeof(int));
-                    *(ns_o[et]->label) = label; 
-                }
-                else{
-                    egr_neighs_t* n = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-                    n->nid = es;
-                    n->next = (struct egr_neighs_t*)ns_o[et];
-                    n->label =  (int*)malloc(sizeof(int));
-                    *(n->label) = label; 
-                    ns_o[et] = n;
-                }
-            }
-        }
-        
-	}
-
-
-	graph->out_adj_list = (int**)malloc(graph->nof_nodes * sizeof(int*));
-	graph->in_adj_list = (int**)malloc(graph->nof_nodes * sizeof(int*));
-	graph->out_adj_attrs = (void***)malloc(graph->nof_nodes * sizeof(void**));
-
-	int* ink = (int*)calloc(graph->nof_nodes, sizeof(int));
-	for (unsigned int i=0; i<graph->nof_nodes; i++){
-		graph->in_adj_list[i] = (int*)calloc(graph->in_adj_sizes[i], sizeof(int));
-
-	}
-	for (unsigned int i=0; i<graph->nof_nodes; i++){
-		// reading degree and successors of vertex i
-        // out_adj_list is just an array that maps node-> list of out edge node ids
-        
-		graph->out_adj_list[i] = (int*)calloc(graph->out_adj_sizes[i], sizeof(int));
-		graph->out_adj_attrs[i] = (void**)malloc(graph->out_adj_sizes[i] * sizeof(void*));
-
-		egr_neighs_t *n = ns_o[i];
-		for (unsigned int j=0; j<graph->out_adj_sizes[i]; j++){
-			graph->out_adj_list[i][j] = n->nid; // this is just an int? 
-
-			graph->out_adj_attrs[i][j] = n->label; // this is a pointer right? 
-			graph->in_adj_list[n->nid][ink[n->nid]] = i;
-
-			ink[n->nid]++;
-
-			n = n->next;
-		}
-	}
-
-
-    // Does this now delete all the ns_o ns_i elements? 
-	for(unsigned int i=0; i<graph->nof_nodes; i++){
-		if(ns_o[i] != NULL){
-			egr_neighs_t *p = NULL;
-			egr_neighs_t *n = ns_o[i];
-			for (unsigned int j=0; j<graph->out_adj_sizes[i]; j++){
-				if(p!=NULL)
-					free(p);
-				p = n;
-				n = n->next;
-			}
-			if(p!=NULL)
-			free(p);
-		}
-
-		if(ns_i[i] != NULL){
-			egr_neighs_t *p = NULL;
-			egr_neighs_t *n = ns_i[i];
-			for (unsigned int j=0; j<graph->out_adj_sizes[i]; j++){
-				if(p!=NULL)
-					free(p);
-				p = n;
-				n = n->next;
-			}
-			if(p!=NULL)
-			free(p);
-		}
-
-
-	}
-  
-  free(ns_o);
-  free(ns_i);
-  free(ink);
-
-  return 0;
-};
-
 
 int read_adj(unsigned int N, int * adj, int * vertlabel, 
              Graph* graph, int extra_edge_pad = 0){
@@ -280,13 +117,6 @@ int read_adj(unsigned int N, int * adj, int * vertlabel,
 
     unsigned int * out_current_pos = (unsigned int*)calloc(graph->nof_nodes, sizeof(int));
     unsigned int * in_current_pos = (unsigned int*)calloc(graph->nof_nodes, sizeof(int));
-    
-	// egr_neighs_t **ns_o = (egr_neighs_t**)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
-    // egr_neighs_t **ns_i = (egr_neighs_t**)malloc(graph->nof_nodes * sizeof(egr_neighs_t));
-	// for(i=0; i<graph->nof_nodes; i++){
-	// 	ns_o[i] = NULL;
-    //     ns_i[i] = NULL;
-	// }
 
     // count in edges and out edges
     for (unsigned int i = 0; i < N; i++) {
@@ -334,138 +164,6 @@ int read_adj(unsigned int N, int * adj, int * vertlabel,
     }
     
 
-
-    // // I think this constructs two arrays of egr_neighs_t:
-    // //   one for in-edges
-    // //   one for out-edges
-    // // on a per-node basis
-    // // and then puts a linked list of the edges in each one
-    // //
-    // // It's not clear if the actual arrays ns_o and ns_i are stored in the graph? 
-    
-    // for (unsigned int i = 0; i < N; i++) {
-    //     for (unsigned int j = i + 1; j < N; j++) {
-    //         int label = adj[i * N + j];
-    //         if (label  > 0) {
-    //             // std::cout << "label i=" << i << " j=" << j
-    //             //           << " N=" << N << " label:" << label <<  std::endl;
-
-    //             int es = i;
-    //             int et = j;
-
-    //             // one direction
-    //             graph->out_adj_sizes[es]++;
-    //             graph->in_adj_sizes[et]++;
-
-    //             if(ns_o[es] == NULL){
-    //                 // create the head of the list (next = NULL)
-    //                 ns_o[es] = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-    //                 ns_o[es]->nid = et;
-    //                 ns_o[es]->next = NULL;
-    //                 ns_o[es]->label = (int*)malloc(sizeof(int));
-    //                 *(ns_o[es]->label) = label;
-    //             }
-    //             else{
-    //                 // create a new list element and add it to the head
-    //                 // of the list (n->next points to previous head) 
-
-    //                 egr_neighs_t* n = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-    //                 n->nid = et;
-    //                 n->next = (struct egr_neighs_t*)ns_o[es];
-    //                 n->label =  (int*)malloc(sizeof(int));
-    //                 *(n->label) = label; 
-    //                 ns_o[es] = n;
-    //             }
-
-    //             // the other direction
-    //             graph->out_adj_sizes[et]++;
-    //             graph->in_adj_sizes[es]++;
-                
-    //             if(ns_o[et] == NULL){
-    //                 ns_o[et] = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-    //                 ns_o[et]->nid = es;
-    //                 ns_o[et]->next = NULL;
-    //                 ns_o[et]->label = (int*)malloc(sizeof(int));
-    //                 *(ns_o[et]->label) = label; 
-    //             }
-    //             else{
-    //                 egr_neighs_t* n = (egr_neighs_t*)malloc(sizeof(egr_neighs_t));
-    //                 n->nid = es;
-    //                 n->next = (struct egr_neighs_t*)ns_o[et];
-    //                 n->label =  (int*)malloc(sizeof(int));
-    //                 *(n->label) = label; 
-    //                 ns_o[et] = n;
-    //             }
-    //         }
-    //     }
-        
-	// }
-
-
-  //   graph->out_adj_list = (int**)malloc(graph->nof_nodes * sizeof(int*));
-  //   graph->in_adj_list = (int**)malloc(graph->nof_nodes * sizeof(int*));
-  //   graph->out_adj_attrs = (void***)malloc(graph->nof_nodes * sizeof(void**));
-
-  //   int* ink = (int*)calloc(graph->nof_nodes, sizeof(int));
-  //   for (unsigned int i=0; i<graph->nof_nodes; i++){
-  //   	graph->in_adj_list[i] = (int*)calloc(graph->in_adj_sizes[i], sizeof(int));
-
-  //   }
-  //   for (unsigned int i=0; i<graph->nof_nodes; i++){
-  //   	// reading degree and successors of vertex i
-  //       // out_adj_list is just an array that maps node-> list of out edge node ids
-        
-  //   	graph->out_adj_list[i] = (int*)calloc(graph->out_adj_sizes[i], sizeof(int));
-  //   	graph->out_adj_attrs[i] = (void**)malloc(graph->out_adj_sizes[i] * sizeof(void*));
-
-  //   	egr_neighs_t *n = ns_o[i];
-  //   	for (unsigned j=0; j<graph->out_adj_sizes[i]; j++){
-  //   		graph->out_adj_list[i][j] = n->nid; // this is just an int? 
-
-  //   		graph->out_adj_attrs[i][j] = n->label; // this is a pointer right? 
-  //   		graph->in_adj_list[n->nid][ink[n->nid]] = i;
-
-  //   		ink[n->nid]++;
-
-  //   		n = n->next;
-  //   	}
-  //   }
-
-
-  //   // Does this now delete all the ns_o ns_i elements? 
-  //   for(unsigned int i=0; i<graph->nof_nodes; i++){
-  //   	if(ns_o[i] != NULL){
-  //   		egr_neighs_t *p = NULL;
-  //   		egr_neighs_t *n = ns_o[i];
-  //   		for (unsigned int j=0; j<graph->out_adj_sizes[i]; j++){
-  //   			if(p!=NULL)
-  //   				free(p);
-  //   			p = n;
-  //   			n = n->next;
-  //   		}
-  //   		if(p!=NULL)
-  //   		free(p);
-  //   	}
-
-  //   	if(ns_i[i] != NULL){
-  //   		egr_neighs_t *p = NULL;
-  //   		egr_neighs_t *n = ns_i[i];
-  //   		for (unsigned int j=0; j<graph->out_adj_sizes[i]; j++){
-  //   			if(p!=NULL)
-  //   				free(p);
-  //   			p = n;
-  //   			n = n->next;
-  //   		}
-  //   		if(p!=NULL)
-  //   		free(p);
-  //   	}
-
-
-  //   }
-  
-  // free(ns_o);
-  // free(ns_i);
-  // free(ink);
     free(out_current_pos);
     free(in_current_pos);
 
@@ -473,59 +171,6 @@ int read_adj(unsigned int N, int * adj, int * vertlabel,
 };
 
 
-// int othermain(int argc, char* argv[]){
-
-
-// 	MATCH_TYPE matchtype;
-// 	GRAPH_FILE_TYPE filetype;
-// 	std::string reference;
-// 	std::string query;
-
-// 	// std::string par = argv[1];
-// 	// if(par=="iso"){
-// 	// 	matchtype = MT_ISO;
-// 	// }
-// 	// else if(par=="ind"){
-// 	// 	matchtype = MT_INDSUB;
-// 	// }
-// 	// else if(par=="mono"){
-//     matchtype = MT_MONO;
-// 	// }
-// 	// else{
-// 	// 	usage(argv[0]);
-// 	// 	return -1;
-// 	// }
-
-// 	// par = argv[2];
-// 	// if(par=="gfu"){
-// 	// 	filetype = GFT_GFU;
-// 	// }
-// 	// else if(par=="gfd"){
-// 	// 	filetype = GFT_GFD;
-// 	// }
-// 	// else if(par=="gfda"){
-// 	// 		filetype = GFT_GFDA;
-// 	// 	}
-// 	// else if(par=="geu"){
-//     filetype = GFT_EGFU;
-// 	// }
-// 	// else if(par=="ged"){
-// 	// 	filetype = GFT_EGFD;
-// 	// }
-// 	// else if(par=="vfu"){
-// 	// 	filetype = GFT_VFU;
-// 	// }
-// 	// else{
-// 	// 	usage(argv[0]);
-// 	// 	return -1;
-// 	// }
-
-// 	reference = argv[3];
-// 	query = argv[4];
-
-// 	//return match(matchtype, filetype, reference, query);
-//     return 0; 
-// };
 
 
 std::ostream& operator<<(std::ostream& os, const std::set<int> &s)
@@ -573,13 +218,6 @@ void compare_graphs(Graph * g1, Graph * g2) {
             std::cout << "i=" << i << " in sets don't match: "
                       << g1_in_set << " " << g2_in_set << std::endl; 
         }
-
-        // auto g1_attr_set = array_to_set(g1->in_adj_list[i], g1->in_adj_sizes[i]); 
-        // auto g2_attr_set = array_to_set(g2->in_adj_list[i], g2->in_adj_sizes[i]);
-        // if (g1_in_set != g2_in_set) {
-        //     std::cout << "i=" << i << " in sets don't match: "
-        //               << g1_in_set << " " << g2_in_set << std::endl; 
-        // }
         
     }
     
@@ -610,51 +248,24 @@ int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,
     edgeComparator = new IntAttrComparator("edge");
 
     
-	// TIMEHANDLE tt_start;
-    //	double tt_end;
-
-
-
-	//read the query graph
-	//load_s_q=start_time();
-    //TIMEHANDLE old_read_start_time = start_time(); 
-	// Graph *old_query = new Graph();
-    // read_egfu_adj(query_N, query_adj, query_vertlabel, old_query); 
-    //double old_read_time = end_time(old_read_start_time); 
-   
-    //TIMEHANDLE new_read_start_time = start_time(); 
 	Graph *query = new Graph();
     read_adj(query_N, query_adj, query_vertlabel, query);
-    //read_adj(query_N, query_adj, query_vertlabel, query);
-    //double new_read_time = end_time(new_read_start_time);
-    //std::cout << "old read: " << old_read_time * 1e6 << "us, new read" << new_read_time * 1e6 << " us" << std::endl; 
 
-    //compare_graphs(query, my_query); 
 
 	make_mama_s=start_time();
 	MaMaConstrFirst* mama = new MaMaConstrFirst(*query);
 	mama->build(*query);
 	make_mama_t+=end_time(make_mama_s);
 
-	//mama->print();
 
-	long 	//steps = 0,				//total number of steps of the backtracking phase
-        //triedcouples = 0, 		//nof tried pair (query node, reference node)
-        matchcount = 0; 		//nof found matches
-        //matchedcouples = 0
+	long matchcount = 0; 		//nof found matches
         
 	long tsteps = 0, ttriedcouples = 0, tmatchedcouples = 0;
 
-    //do not print matches, just count them
-    //MatchListener* matchListener=new ConsoleMatchListener();
-    
     MatchListener* matchListener=new EmptyMatchListener(max_time);
 
-    //int i=0;
-    //bool rreaded = true;
-    //load_s=start_time();
+
     Graph * rrg = new Graph();
-    //read_adj(ref_N, ref_adj, ref_vertlabel, rrg); 
     read_adj(ref_N, ref_adj, ref_vertlabel, rrg); 
 
     //run the matching
@@ -671,9 +282,6 @@ int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,
             &tmatchedcouples);
     match_t+=end_time(match_s);
     
-//	delete mama;
-//	delete query;
-    
     delete mama;
     delete query;
     delete rrg; 
@@ -684,18 +292,13 @@ int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,
 	matchcount = matchListener->matchcount;
         
     if (matchListener->timeout) {
+        delete matchListener;         
         throw std::runtime_error("timeout"); 
     }
 
     double total_t = 0.0;
     total_t += end_time(total_s);
     double pct_not_in_match = (1 - match_t / total_t) * 100;
-
-    // if (pct_not_in_match < 30) { 
-    //     std:cout << std::setprecision( 4 )
-    //              << " match_t: " << match_t*1000000 << "us" 
-    //              << " total_t: " << total_t*1000000 << "us"  <<  " " << pct_not_in_match  << "% of time was in non-match" << std::endl;
-    // }
 
     delete matchListener; 
 	return matchcount > 0 ;
@@ -716,7 +319,6 @@ int which_edges_indsubiso_incremental(int query_N, int * query_adj, int * query_
     double match_t=0; //double total_t=0;
 	total_s=start_time();
 
-	//int rret;
     match_s = start_time(); 
     AttributeComparator* nodeComparator;			//to compare node labels
     AttributeComparator* edgeComparator;			//to compare edge labels
@@ -738,58 +340,40 @@ int which_edges_indsubiso_incremental(int query_N, int * query_adj, int * query_
         int new_i = possible_edges[possible_i * 3 + 0];
         int new_j = possible_edges[possible_i * 3 + 1];
         int new_c = possible_edges[possible_i * 3 + 2];
-        //std::cout << "checking " << possible_i << " " << new_i << " " << new_j << " " << new_c <<  std::endl; 
-        
-        //Graph *query = new Graph();
-        //std::cout << "created new query" << std::endl; 
 
-        // create new label
         int * edge_i_label = (int*)malloc(sizeof(int));
         *edge_i_label = new_c;
-        //std::cout << "just adding a single little thing" << std::endl;
-        //std::cout << "out_adj_sizes[new_i]=" << query->out_adj_sizes[new_i]  << std::endl; 
+
         query->out_adj_list[new_i][query->out_adj_sizes[new_i]] = new_j;
         query->out_adj_attrs[new_i][query->out_adj_sizes[new_i]] = edge_i_label;
         query->out_adj_sizes[new_i]++;
 
         query->in_adj_list[new_j][query->in_adj_sizes[new_j]] = new_i; 
         query->in_adj_sizes[new_j]++; 
-        //std::cout << "created new query" << std::endl; 
 
         int * edge_j_label = (int*)malloc(sizeof(int));
         *edge_j_label = new_c;
         query->out_adj_list[new_j][query->out_adj_sizes[new_j]] = new_i;
         query->out_adj_attrs[new_j][query->out_adj_sizes[new_j]] = edge_j_label;
         query->out_adj_sizes[new_j]++;
-        //std::cout << "created new query" << std::endl; 
         
         query->in_adj_list[new_i][query->in_adj_sizes[new_i]] = new_j; 
         query->in_adj_sizes[new_i]++;
 
-        //std::cout << "created new query" << std::endl; 
-
-        // // update the adj
-        // std::vector<int> tmp_adj(query_N * query_N);
-        // memcpy(&tmp_adj[0], query_adj, query_N * query_N * sizeof(int));
-
-        
-        // tmp_adj[new_i * query_N + new_j] = new_c; 
-        // tmp_adj[new_j * query_N + new_i] = new_c; 
-            
-            
-        //read_adj(query_N, &tmp_adj[0], query_vertlabel, query);
-        //read_adj(query_N, &tmp_adj[0], query_vertlabel, query);
-
-    
-        //make_mama_s=start_time();
         MaMaConstrFirst* mama = new MaMaConstrFirst(*query);
         mama->build(*query);
-        // make_mama_t+=end_time(make_mama_s);
-
 
         long matchcount = 0; 		
         double thus_far_t = end_time(match_s);
         if (thus_far_t > max_time) {
+            delete mama;
+            delete query;
+            delete rrg; 
+            
+            delete nodeComparator;
+            delete edgeComparator;
+
+            
             throw std::runtime_error("timeout"); 
 
         }
@@ -814,6 +398,14 @@ int which_edges_indsubiso_incremental(int query_N, int * query_adj, int * query_
         possible_edges_out[possible_i] = (matchcount > 0);
 
         if (matchListener->timeout) {
+            delete mama;
+            delete matchListener;
+            delete query;
+            delete rrg; 
+            
+            delete nodeComparator;
+            delete edgeComparator;
+
             throw std::runtime_error("timeout"); 
         }
         
@@ -828,8 +420,6 @@ int which_edges_indsubiso_incremental(int query_N, int * query_adj, int * query_
         
         delete mama;
         delete matchListener;
-        // std::cout << "testing new_i=" << new_i << " new_j=" << new_j
-        //           << " new_c=" << new_c << " result=" << matchcount << std::endl;
 
     }
         
