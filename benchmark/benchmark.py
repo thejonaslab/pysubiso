@@ -37,6 +37,7 @@ EXPERIMENTS = {'debug_100' : {'files' : ['/tmp/slow_graphs.00000000.tar.gz'],
                               'matchers' : ['ri', 'lemon'],
                               'timeout' : 10.0,
                               'num' : 100},
+               
                'allgraphs_4000' : {'files' : ['all_graphs.00000000.tar.gz',
                                               'all_graphs.00000001.tar.gz',
                                               'all_graphs.00000002.tar.gz',
@@ -55,13 +56,25 @@ EXPERIMENTS = {'debug_100' : {'files' : ['/tmp/slow_graphs.00000000.tar.gz'],
                #            'matchers' : ['ri', 'lemon'],
                #            'num' : 400}
 
-               'benchmark_old_100' : {'files' : ['all_graphs.00000000.tar.gz',
+               'benchmark_newnew_100' : {'files' : ['all_graphs.00000000.tar.gz',
                                              
                ],
                                   'matchers' : ['ri', 'lemon'],
                                   'timeout' : 1.0, 
                                    'num' : 100},               
 
+               'allgraphs_4000_faster' : {'files' : ['all_graphs.00000000.tar.gz',
+                                              'all_graphs.00000001.tar.gz',
+                                              'all_graphs.00000002.tar.gz',
+                                              'all_graphs.00000003.tar.gz', ],
+                                  'matchers' : ['ri', 'lemon'],
+                                  'timeout' : 1.0, 
+                                   'num' : 1000},
+
+               'slow_200' : {'files' : ['/tmp/slow_graphs.00000000.tar.gz'],
+                              'matchers' : ['ri', 'lemon'],
+                              'timeout' : 10.0,
+                              'num' : 200},               
 }
 
 def params():

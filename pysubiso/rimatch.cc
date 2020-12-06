@@ -717,7 +717,7 @@ int which_edges_indsubiso_incremental(int query_N, int * query_adj, int * query_
 	total_s=start_time();
 
 	//int rret;
-
+    match_s = start_time(); 
     AttributeComparator* nodeComparator;			//to compare node labels
     AttributeComparator* edgeComparator;			//to compare edge labels
     nodeComparator = new IntAttrComparator("node");
@@ -731,6 +731,9 @@ int which_edges_indsubiso_incremental(int query_N, int * query_adj, int * query_
     
     
     for (unsigned int possible_i = 0; possible_i < possible_edges_N; ++possible_i) {
+
+        
+
 
         int new_i = possible_edges[possible_i * 3 + 0];
         int new_j = possible_edges[possible_i * 3 + 1];
@@ -785,8 +788,13 @@ int which_edges_indsubiso_incremental(int query_N, int * query_adj, int * query_
 
 
         long matchcount = 0; 		
+        double thus_far_t = end_time(match_s);
+        if (thus_far_t > max_time) {
+            throw std::runtime_error("timeout"); 
+
+        }
         
-        MatchListener* matchListener=new EmptyMatchListener(max_time);
+        MatchListener* matchListener=new EmptyMatchListener(max_time - thus_far_t);
         long tsteps = 0, ttriedcouples = 0, tmatchedcouples = 0;
 
 
