@@ -1,4 +1,6 @@
 ## Graph isomorphism and subgraph isomorphism
+[![thejonaslab](https://circleci.com/gh/thejonaslab/pysubiso.svg?style=svg)](https://app.circleci.com/pipelines/github/thejonaslab/pysubiso)
+
 
 This is a library which attempts to unify all of our graph isomorphism
 and subisomorphism code into one library with extensive tests and benchmarking, 
@@ -64,56 +66,29 @@ portion of the passed in adjaceny matrices
 
 
 ## TODO 
-[x] Settle on an API which can switch between backends
-[x] basic migration of RI code to new API 
-[x] ~Write networkx impl [IMPOSSIBLE does not support induced subiso]~
-[ ] port test suite to good file format
-[x] migrate existing tests to new API
-[x] Create tests 
-[x] check subiso between differently-sized graphs
-[ ] rename everything
-[x] fix timeout on subiso matching
-[ ] normalize / unify test suite function naming
-[x] split out nx helper funcs to a different module
-[x] port lemon over
-[ ] benchmark both
-[ ] Clean up code to explort canonical graphs to benchmark
-[x] Make sure we are using nogil in all the right places
-[x] be sure to handle deleting of objects if exception gets thrown
-[ ] Make it very clear what things expect upper-triangular vs mymmetric matrices
-[x] faster which-next-edges
-[ ] Remove lemon's superfluous printing during timeout
-[ ] Grep for FIXMEs and test
+- [x] Settle on an API which can switch between backends
+- [x] basic migration of RI code to new API 
+- [x] ~Write networkx impl [IMPOSSIBLE does not support induced subiso]~
+- [ ] port test suite to good file format
+- [x] migrate existing tests to new API
+- [x] Create tests 
+- [x] check subiso between differently-sized graphs
+- [ ] rename everything
+- [x] fix timeout on subiso matching
+- [ ] normalize / unify test suite function naming
+- [x] split out nx helper funcs to a different module
+- [x] port lemon over
+- [ ] benchmark both
+- [ ] Clean up code to explort canonical graphs to benchmark
+- [x] Make sure we are using nogil in all the right places
+- [x] be sure to handle deleting of objects if exception gets thrown
+- [ ] Make it very clear what things expect upper-triangular vs mymmetric matrices
+- [x] faster which-next-edges
+- [ ] Remove lemon's superfluous printing during timeout
+- [ ] Grep for FIXMEs and test
 
-## Development
-Option 1: Local Cython setup
-- Install requirements
-  - `python -m pip install -r requirements.txt`
-- Build Cython extension locally
-  - `python -m setup.py build_ext --inplace`
+## Developers
 
-Option 2: Use setup.py
-- `python setup.py build`
-- `python setup.py install`
-
-Running tests (after installation):
-- `python test.py`
-
-## Installation
-- `python -m pip install -r requirements.txt`
-- `python -m pip install -e .`
-
-## Usage
-- `import ripy`
-- `import riwrapper`
-- `riwrapper.c_is_subiso`
-
-## Lemon notes
-
-
-## Sanitize notes
-
-
-https://stackoverflow.com/questions/55692357/address-sanitizer-on-a-python-extension
-https://jonasdevlieghere.com/sanitizing-python-modules/
+- Eric Jonas
+- Richard Zhu
 
