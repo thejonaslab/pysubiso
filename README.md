@@ -83,7 +83,7 @@ portion of the passed in adjaceny matrices
 [ ] Make it very clear what things expect upper-triangular vs mymmetric matrices
 [x] faster which-next-edges
 [ ] Remove lemon's superfluous printing during timeout
-
+[ ] Grep for FIXMEs and test
 
 ## Development
 Option 1: Local Cython setup

@@ -25,7 +25,7 @@ MOL_DATA_NORMAL = [os.path.basename(f) for f in glob(DATA_DIR + "/molecules.norm
 
 MATCHERS = ['RI', 'lemon']
 
-
+@pytest.mark.slow
 @pytest.mark.parametrize('matcher', MATCHERS)
 @pytest.mark.parametrize('filename', MOL_DATA_NORMAL)
 def test_moldata_normal_next_indsubsio(matcher, filename):

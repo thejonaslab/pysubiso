@@ -25,14 +25,12 @@ def random_graph_small(graph_size=20, node_colors = [1, 2, 5],
 
         
 
-def test_edge_add_indsubiso_random_suite():
+def test_compare_matchers_random_suite():
     """
-    Generate random graphs, remove random subsets of edges, 
-    check if results subiso. Compares against manual 
-    invocation of matcher. 
-    
-    """
+    Compare all matchers to make sure they return the same results
 
+    FIXME: check for timeouts 
+    """
 
     matchers = {m : pysubiso.create_match(m) for m in MATCHERS}
     
@@ -55,23 +53,22 @@ def test_edge_add_indsubiso_random_suite():
             continue
 
         results = []
-        for m_name, m in matchers.items():
-            
-            valid_indsubiso = m.edge_add_indsubiso(g_sub_adj, g_sub_color,
-                                                   g_adj, g_color,
-                                                   candidate_edges, 10.0)
-            assert valid_indsubiso.shape[0] == candidate_edges.shape[0]
-            for res, (i, j, c) in zip(valid_indsubiso, candidate_edges):
-                a = g_sub_adj.copy()
-                a[i, j] = c
-                assert res == m.is_indsubiso(a, g_sub_color, g_adj, g_color)
-            
-            results.append(valid_indsubiso)
+        try:
+            for m_name, m in matchers.items():
 
-        results = np.vstack(results).T
+                valid_indsubiso = m.edge_add_indsubiso(g_sub_adj, g_sub_color,
+                                                       g_adj, g_color,
+                                                       candidate_edges, 10.0)
+                assert valid_indsubiso.shape[0] == candidate_edges.shape[0]
 
-        was_correct = results[:, 0][:, np.newaxis] == results
-        
-        assert was_correct.all(), str(results)
-        
+                results.append(valid_indsubiso)
+
+            results = np.vstack(results).T
+
+            was_correct = results[:, 0][:, np.newaxis] == results
+
+            assert was_correct.all(), str(results)
+        except pysubiso.TimeoutError as e:
+            print("A matcher timed out")
+            
         
