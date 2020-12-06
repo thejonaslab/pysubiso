@@ -82,6 +82,8 @@ portion of the passed in adjaceny matrices
 [x] be sure to handle deleting of objects if exception gets thrown
 [ ] Make it very clear what things expect upper-triangular vs mymmetric matrices
 [x] faster which-next-edges
+[ ] Remove lemon's superfluous printing during timeout
+
 
 ## Development
 Option 1: Local Cython setup
