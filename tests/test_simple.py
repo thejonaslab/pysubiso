@@ -139,18 +139,6 @@ def test_indsubiso_random_del(matcher):
 #                        g_adj, g_color, 0.001)    
 
 
-def gen_possible_next_edges(adj, colors):
-    """
-
-    """
-    out = []
-    for i in range(adj.shape[0]):
-        for j in range(i +1, adj.shape[1]):
-            if adj[i, j] == 0:
-                for c in colors:
-                    out.append([i, j, c])
-    return np.array(out, dtype=np.int32)
-    
 @pytest.mark.parametrize('matcher', MATCHERS)
 def test_simple_edge_add_indsubiso(matcher):
     x = np.zeros((3, 3), np.int32)
@@ -199,7 +187,7 @@ def test_edge_add_indsubiso_random_suite(matcher):
         g_sub = nx_random_edge_del(g_perm, to_del)
         g_sub_adj, g_sub_color = nx_to_adj(g_sub)
 
-        candidate_edges =  gen_possible_next_edges(g_sub_adj,
+        candidate_edges =  pysubiso.gen_possible_next_edges(g_sub_adj,
                                                    np.arange(1, np.max(g_color)+1,
                                                    dtype=np.int32))
         if len(candidate_edges) == 0:
@@ -220,7 +208,7 @@ def test_edge_add_indsubiso_random_suite(matcher):
 
 #@pytest.mark.xfail
 @pytest.mark.parametrize('matcher', MATCHERS)
-def test_test_edge_add_indsubiso_timeout(matcher):
+def test_edge_add_indsubiso_timeout(matcher):
     """
     Generate a very large graph we know will timeout
     and check that the exception is raised
@@ -240,7 +228,7 @@ def test_test_edge_add_indsubiso_timeout(matcher):
     g_sub = nx_random_edge_del(g_sub, 5)
     g_sub_adj, g_sub_color = nx_to_adj(g_sub)
 
-    candidate_edges = gen_possible_next_edges(g_sub_adj, g_sub_color)
+    candidate_edges = pysubiso.gen_possible_next_edges(g_sub_adj, g_sub_color)
 
     with pytest.raises(pysubiso.TimeoutError):
         valid_indsubiso = m.edge_add_indsubiso(g_sub_adj, g_sub_color,

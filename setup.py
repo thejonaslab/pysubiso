@@ -42,6 +42,12 @@ extensions += [Extension("pysubiso.lemonwrapper", lemon_sourcefiles,
                          extra_compile_args=COMPILE_ARGS, 
                          extra_link_args = LD_FLAGS, )]
 
+fastutil_sourcefiles = ["pysubiso/fastutils.pyx"]
+extensions += [Extension("pysubiso.fastutils", fastutil_sourcefiles,
+                         include_dirs=[numpy.get_include()],
+                         language="c++",
+                         extra_compile_args=COMPILE_ARGS, 
+                         extra_link_args = LD_FLAGS, )]
 setup(
     name='pysubiso',
     version=__version__,

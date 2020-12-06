@@ -24,18 +24,6 @@ def random_graph_small(graph_size=20, node_colors = [1, 2, 5],
     return g
 
         
-def gen_possible_next_edges(adj, colors):
-    """
-
-    """
-    out = []
-    for i in range(adj.shape[0]):
-        for j in range(i +1, adj.shape[1]):
-            if adj[i, j] == 0:
-                for c in colors:
-                    out.append([i, j, c])
-    return np.array(out, dtype=np.int32)
-    
 
 def test_edge_add_indsubiso_random_suite():
     """
@@ -60,7 +48,7 @@ def test_edge_add_indsubiso_random_suite():
         g_sub = nx_random_edge_del(g_perm, to_del)
         g_sub_adj, g_sub_color = nx_to_adj(g_sub)
 
-        candidate_edges =  gen_possible_next_edges(g_sub_adj,
+        candidate_edges =  pysubiso.gen_possible_next_edges(g_sub_adj,
                                                    np.arange(1, np.max(g_color)+1,
                                                    dtype=np.int32))
         if len(candidate_edges) == 0:
