@@ -1,6 +1,7 @@
 import numpy as np
 import networkx as nx
-
+import tarfile
+import os
 
 def nx_random_graph(N, node_color_n, edge_color_n):
     """
@@ -63,3 +64,34 @@ def nx_random_edge_del(g, n):
     g.remove_edges_from(tgt_edges)
     return g
 
+
+
+def read_graphml_tgz_data(filename, max_num = -1):
+    """
+    Helper function to read our data files, which are gzipped
+    with a graph, subgraph pair in each directory, as
+    graphml files. 
+
+    returns g_adj, g_color, g_sub_adj, g_sub_color
+
+    Note we don't keep the number/type of possible next 
+    edges anywhere, and it is dataset-dependent
+    """
+
+    tf_load = tarfile.open(filename, mode='r:gz') 
+    n = tf_load.getnames()
+    if max_num > 0:
+        n = n[:max_num]
+
+    pairs = [os.path.dirname(s) for s in n]
+    for p in pairs:
+        main = tf_load.extractfile(p + "/main.graphml").read()
+        sub = tf_load.extractfile(p + "/sub.graphml").read()
+        g_main = nx.parse_graphml(main, node_type=int)
+        g_sub = nx.parse_graphml(sub, node_type=int)
+
+        g_adj, g_color = nx_to_adj(g_main)
+
+        g_sub_adj, g_sub_color = nx_to_adj(g_sub)
+
+        yield g_adj, g_color, g_sub_adj, g_sub_color
