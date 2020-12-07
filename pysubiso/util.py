@@ -6,13 +6,13 @@ import os
 def nx_random_graph(N, node_color_n, edge_color_n):
     """
     Generate a random graph of N nodes with the indicated edge colors
-    and node colors
+    and node colors. Note edge colors go from 1 ... edge_color_n inclusive
 
     """
 
     g = nx.generators.random_graphs.fast_gnp_random_graph(N, 0.3, seed=0, directed=False)
     v_colors = np.random.randint(node_color_n, size=N)
-    e_colors = np.random.randint(edge_color_n, size=len(g.edges))
+    e_colors = np.random.randint(1, edge_color_n+1, size=len(g.edges))
 
     for n in g.nodes:
         g.nodes[n]['color'] = v_colors[n]
