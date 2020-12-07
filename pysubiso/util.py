@@ -39,6 +39,15 @@ def nx_permute(g):
     g2 = nx.relabel_nodes(g, mapping)
     return g2
 
+def nx_canonicalize_nodes(g):
+    """
+    returns the nodes with labels 0... N-1
+
+    """
+    mapping = {v: i for i,v  in enumerate(g.nodes)}
+    g_clean = nx.relabel_nodes(g, mapping)
+    return g_clean
+
 def nx_random_subgraph(g, n):
     """
     Randomly delete all but n nodes from g. Returns new relabeled graph
@@ -64,6 +73,15 @@ def nx_random_edge_del(g, n):
     g.remove_edges_from(tgt_edges)
     return g
 
+def adj_colors_to_nx_graph(adj, colors):
+    
+    G = nx.convert_matrix.from_numpy_matrix(adj)
+    for c, n in zip(colors, G.nodes):
+        G.nodes[n]['color'] = c
+    for e in G.edges:
+        G.edges[e[0], e[1]]['color'] = G.edges[e[0], e[1]]['weight']
+        del G.edges[e[0], e[1]]['weight']
+    return G
 
 
 def read_graphml_tgz_data(filename, max_num = -1):

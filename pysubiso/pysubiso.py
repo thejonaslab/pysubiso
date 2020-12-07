@@ -4,7 +4,7 @@ import networkx as nx
 
 from pysubiso import riwrapper
 from pysubiso import lemonwrapper
-
+from pysubiso import util
 class TimeoutError(Exception):
     pass
 
@@ -54,6 +54,8 @@ def create_match(name):
 
     elif name == 'lemon':
         return LemonMatch()
+    elif name == 'nx':
+        return NXMatch()
 
     raise NotImplementedError(f"unkown {name} matcher")
 
@@ -116,14 +118,6 @@ class LemonMatch(Match):
     def __init__(self):
         pass
 
-    def is_iso(self, g_sub_adj, g_sub_color,
-               g_main_adj, g_main_color,
-               timeout = 1.0):
-        """
-
-
-        """
-
     def is_indsubiso(self, g_sub_adj, g_sub_color, 
                      g_main_adj, g_main_color, timeout=1.0):
         """
@@ -163,3 +157,34 @@ class LemonMatch(Match):
             raise 
         return out_array > 0
     
+
+
+class NXMatch(Match):
+    """
+    Just a NetworkX wrapper that supports isomorphism 
+    calculation (because NX does not support induced
+    subisomoprhism calculations, only classic subisomorphism)
+    """
+    
+    def __init__(self):
+        pass
+
+    def is_iso(self, g_sub_adj, g_sub_color,
+               g_main_adj, g_main_color,
+               timeout = 1.0):
+        """
+
+
+        """
+
+        
+        g_sub = util.adj_colors_to_nx_graph(g_sub_adj, g_sub_color)
+        g_main = util.adj_colors_to_nx_graph(g_main_adj, g_main_color)
+        GM = nx.algorithms.isomorphism.GraphMatcher(g_sub, g_main,
+                                      node_match = lambda n1, n2: n1['color'] == n2['color'],
+                                      edge_match = lambda e1, e2: e1['color'] == e2['color'],
+        )
+        
+
+        return GM.is_isomorphic()
+        
