@@ -227,11 +227,17 @@ void compare_graphs(Graph * g1, Graph * g2) {
 
 
 
-int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,               
-                 int ref_N, int * ref_adj, int * ref_vertlabel, float max_time)
+int is_match(int query_N, int * query_adj, int * query_vertlabel,               
+             int ref_N, int * ref_adj, int * ref_vertlabel,
+             float max_time, int match_type)
 {
 
-    MATCH_TYPE     matchtype = MT_MONO;
+    MATCH_TYPE     matchtype; 
+    if (match_type == 0) {
+        matchtype = MT_ISO;
+    } else{
+        matchtype = MT_MONO;
+    }
     //GRAPH_FILE_TYPE filetype = GFT_EGFU;
     
 	TIMEHANDLE //load_s, load_s_q,

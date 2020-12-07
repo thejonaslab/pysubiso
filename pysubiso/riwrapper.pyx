@@ -6,8 +6,9 @@ cimport numpy as cnp
 
 from libcpp.string cimport string
 cdef extern from "rimatch.h":
-   int is_indsubiso(int query_N, int * query_adj, int * query_vertlabel,               
-                 int ref_N, int * ref_adj, int * ref_vertlabel, float maxtime) nogil except +
+   int is_match(int query_N, int * query_adj, int * query_vertlabel,               
+                int ref_N, int * ref_adj, int * ref_vertlabel, float maxtime,
+                int match_type) nogil except +
 
    int which_edges_indsubiso_incremental(int query_N, int * query_adj, int * query_vertlabel,               
                                          int ref_N, int * ref_adj, int * ref_vertlabel,
@@ -17,16 +18,19 @@ cdef extern from "rimatch.h":
    
 
 
-cpdef c_is_indsubiso(
+cpdef c_is_match(
     int[:, :] g_sub_adj,
     int[:] g_sub_colors,
     int[:, :] g_main_adj,
     int[:] g_main_colors,
     float maxtime,
+    int match_type
 ):
     """
-    Check if graph g (with provided node colors) is induced 
-    subisomorphic to graph G.
+    Check if graph g_sub (with provided node colors) is either:
+    - isomorphic (match_type = 0 )
+    - induced subisomorphic (match_type = 1) 
+    to a (potentially larger) graph g_main. 
 
     Note that non-zero values in the adjacency matrices 
     are treated as labeled edges and the adj matrix 
@@ -44,12 +48,12 @@ cpdef c_is_indsubiso(
     assert g_main_adj.shape[0] == g_main_adj.shape[1]
     assert len(g_main_colors) == g_main_adj.shape[0]
 
-    return is_indsubiso( g_sub_adj.shape[0],
-                      &g_sub_adj[0, 0],
-                      &g_sub_colors[0],
-                      g_main_adj.shape[0],
-                      &g_main_adj[0,0],
-                      &g_main_colors[0], maxtime)
+    return is_match( g_sub_adj.shape[0],
+                     &g_sub_adj[0, 0],
+                     &g_sub_colors[0],
+                     g_main_adj.shape[0],
+                     &g_main_adj[0,0],
+                     &g_main_colors[0], maxtime, match_type)
 
 cpdef c_which_edges_indsubiso(
     int[:, :] g_sub_adj,
@@ -92,14 +96,14 @@ cpdef c_which_edges_indsubiso(
 
         elapsed_time = time.time() - start_time
 
-        res = is_indsubiso(
+        res = is_match(
             g_sub_adj.shape[0],
             &sub_adj[0, 0],
             &g_sub_colors[0],
             g_main_adj.shape[0],
             &g_main_adj[0, 0],
             &g_main_colors[0],
-            max(maxtime - elapsed_time, 1e-3) # fixme should be remaining time
+            max(maxtime - elapsed_time, 1e-3), 1
         )
         results[pos] = res
         

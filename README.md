@@ -88,7 +88,7 @@ portion of the passed in adjaceny matrices
 - [ ] Grep for FIXMEs and test
 - [ ] Add Graph subisomorphism
 - [ ] Do we ever want to return the assignments? 
-
+- [ ] Docstrings for all funcs
 
 ## Developers
 
