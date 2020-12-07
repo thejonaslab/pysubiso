@@ -89,6 +89,7 @@ portion of the passed in adjaceny matrices
 - [ ] Add Graph subisomorphism
 - [ ] Do we ever want to return the assignments? 
 - [ ] Docstrings for all funcs
+- [ ] make sure RI functions return booleans and not ints
 
 ## Developers
 

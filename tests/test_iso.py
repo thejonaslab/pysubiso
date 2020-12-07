@@ -69,6 +69,8 @@ def test_iso_removed(matcher):
     
     np.random.seed(0)
     g = random_graph_small()
+    for e in g.edges(data=True):
+        print(e)
     g_adj, g_color = nx_to_adj(g)
 
     g_perm = nx_permute(g)
@@ -76,5 +78,21 @@ def test_iso_removed(matcher):
     g_perm = nx_canonicalize_nodes(g_perm)
     
     g_new_adj, g_new_color = nx_to_adj(g_perm)
+    assert not m.is_iso(g_adj, g_color, g_new_adj, g_new_color)
+
+    g_perm = g.copy() #nx_permute(g)
+    e = list(g_perm.edges)[0] # np.random.permutation(g_perm.edges)[0]
+    print(g_perm.edges[e[0], e[1]])
+    e1 = list(g_perm.edges)[1] # np.random.permutation(g_perm.edges)[0]
+    print("removing", e)
+    print(len(g_perm.edges))
+    g_perm.remove_edge(e[0], e[1])
+    g_perm.remove_edge(e1[0], e1[1])
+    print(len(g_perm.edges))
+    
+    g_new_adj, g_new_color = nx_to_adj(g_perm)
+    print(g_new_adj)
+    print(nx_to_adj(g)[0] - nx_to_adj(g_perm)[0])
+    
     assert not m.is_iso(g_adj, g_color, g_new_adj, g_new_color)
 
