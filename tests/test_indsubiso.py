@@ -87,9 +87,12 @@ def test_indsubiso_random_del(matcher):
             g_sub = nx_random_edge_del(g_perm, n)
 
             g_sub_adj, g_sub_color = nx_to_adj(g_sub)
-            assert m.is_indsubiso(g_sub_adj, g_sub_color,
-                                  g_adj, g_color)
-
+            try:
+                assert m.is_indsubiso(g_sub_adj, g_sub_color,
+                                      g_adj, g_color)
+            except pysubiso.TimeoutError as e:
+                pass
+            
 
 # def test_indsubiso_data_suite(matcher='RI'):
 

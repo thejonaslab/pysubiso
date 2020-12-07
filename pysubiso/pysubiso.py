@@ -80,10 +80,14 @@ class RIMatch(Match):
 
 
         """
-
-        return riwrapper.c_is_match(g_sub_adj, g_sub_color,
-                                    g_main_adj, g_main_color, timeout,
-                                    match_type=1)
+        try:
+            return riwrapper.c_is_match(g_sub_adj, g_sub_color,
+                                        g_main_adj, g_main_color, timeout,
+                                        match_type=1)
+        except Exception as e:  
+            if str(e) == 'timeout':
+                raise TimeoutError()
+            raise 
         
 
     def edge_add_indsubiso(self, g_sub_adj, g_sub_color, 
@@ -109,7 +113,7 @@ class RIMatch(Match):
                                                                       candidate_edges, 
                                                                       timeout)
             return out_array > 0 
-        except Exception as e:  # FIXME clean up this exception handling
+        except Exception as e:  
             if str(e) == 'timeout':
                 raise TimeoutError()
             raise 
@@ -125,13 +129,18 @@ class LemonMatch(Match):
 
         """
 
-        
-        wasiso, mapping = lemonwrapper.lemon_subiso_vf2(
-            g_sub_adj, g_sub_color, 
-            g_main_adj, g_main_color, 
-            weighted_edges=True, max_run_sec=timeout)
+        try:
+            wasiso, mapping = lemonwrapper.lemon_subiso_vf2(
+                g_sub_adj, g_sub_color, 
+                g_main_adj, g_main_color, 
+                weighted_edges=True, max_run_sec=timeout)
 
-        return wasiso
+            return wasiso
+        except Exception as e:
+            if str(e).lower() == "timeout":
+                raise TimeoutError()
+            else:
+                raise
 
     def edge_add_indsubiso(self, g_sub_adj, g_sub_color, 
                            g_main_adj, g_main_color, 
@@ -154,7 +163,8 @@ class LemonMatch(Match):
         except Exception as e:  # FIXME clean up this exception handling
             if str(e) == 'timeout':
                 raise TimeoutError()
-            raise 
+            else:
+                raise 
         return out_array > 0
     
 
