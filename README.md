@@ -69,7 +69,7 @@ portion of the passed in adjaceny matrices
 - [x] Settle on an API which can switch between backends
 - [x] basic migration of RI code to new API 
 - [x] ~Write networkx impl [IMPOSSIBLE does not support induced subiso]~
-- [ ] port test suite to good file format
+- [x] port test suite to good file format
 - [x] migrate existing tests to new API
 - [x] Create tests 
 - [x] check subiso between differently-sized graphs
@@ -86,6 +86,9 @@ portion of the passed in adjaceny matrices
 - [x] faster which-next-edges
 - [ ] Remove lemon's superfluous printing during timeout
 - [ ] Grep for FIXMEs and test
+- [ ] Add Graph subisomorphism
+- [ ] Do we ever want to return the assignments? 
+
 
 ## Developers
 
