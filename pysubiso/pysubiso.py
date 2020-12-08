@@ -5,6 +5,7 @@ import networkx as nx
 from pysubiso import riwrapper
 from pysubiso import lemonwrapper
 from pysubiso import util
+
 class TimeoutError(Exception):
     pass
 
