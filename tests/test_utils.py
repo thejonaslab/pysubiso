@@ -22,6 +22,12 @@ def reference_gen_possible_next_edges(adj, colors):
 def test_possible_next_edges():
     np.random.seed(10)
 
+    # empty
+    adj = np.zeros((31, 31), dtype=np.int32)
+    possible_colors = np.array([1, 2, 3,4], dtype=np.int32)
+    
+    possible_edges = pysubiso.gen_possible_next_edges(adj, possible_colors)
+
     for N in [1, 5, 10, 20, 32, 64, 100]:
         for color_n in [1, 4, 10]:
 
@@ -59,7 +65,7 @@ def test_get_color_edge_possible_table():
                     [0, 2, 0, 3],
                     [0, 0, 3, 0]], dtype=np.int32)
     node_colors = np.array([0, 1, 2, 3], dtype=np.int32)
-    possible_edge_colors = np.array([1, 2, 3])
+    possible_edge_colors = np.array([1, 2, 3], dtype=np.int32)
     possible_node_colors = np.unique(node_colors)
     
     possible_table = pysubiso.get_color_edge_possible_table(adj, node_colors, possible_edge_colors)
@@ -83,7 +89,7 @@ def test_get_color_edge_possible_table():
                     [0, 2, 0, 3],
                     [0, 0, 3, 0]], dtype=np.int32)
     node_colors = np.array([0, 1, 1, 0], dtype=np.int32)
-    possible_edge_colors = np.array([1, 2, 3])
+    possible_edge_colors = np.array([1, 2, 3], dtype=np.int32)
     possible_node_colors = np.unique(node_colors)
     
     possible_table = pysubiso.get_color_edge_possible_table(adj, node_colors, possible_edge_colors)
@@ -107,71 +113,152 @@ def compare_node_edge_tables(a, b):
     for ec in range(a.shape[2]):
         np.testing.assert_array_equal(a[:, :, ec], b[:, :, ec], err_msg=f"error, ec={ec}")
 
+
+
+def create_graph_specific_nodetype_edgetype_counts(node_color_n, edge_color_n, copies, nc_ec_stats):
+    possible_edge_colors = np.arange(edge_color_n) + 1
+    possible_node_colors = np.arange(node_color_n)
+
+    G = nx.Graph()
+    npos = 0
+    for i in range(copies):
+        for nc in possible_node_colors:
+            G.add_node(npos, color=nc)
+            npos += 1
+
+    # random matrix
+
+    for i in range(node_color_n):
+        nc_i = possible_node_colors[i]
+        for j in range(i, node_color_n):
+            nc_j = possible_node_colors[j]
+            for ec in possible_edge_colors:
+                ##
+                tgt_number = nc_ec_stats[nc_i, nc_j, ec] # there should be this many edges between nodes of this color and nodes of that color
+                for _ in range(tgt_number):
+                    nc_i_nodes = np.random.permutation([n for (n, d) in G.nodes(data=True) if d['color'] == nc_i])
+                    nc_j_nodes = np.random.permutation([n for (n, d) in G.nodes(data=True) if d['color'] == nc_j])
+                    unconnected = set([sort_tuple(p) for p in itertools.product(nc_i_nodes, nc_j_nodes)\
+                                   if p not in G.edges])
+                    if len(unconnected)  == 0:
+                        ## if there are no disconnected nodes of this color, add a new one
+
+                        new_node_id = len(G.nodes)
+                        G.add_node(new_node_id, color=nc_j)
+
+                        unconnected = set([(n, new_node_id) for n in nc_i_nodes])
+
+
+                    j= np.random.randint(0, len(unconnected))
+                    tgt_pair = list(unconnected)[j]
+
+                    G.add_edge(tgt_pair[0], tgt_pair[1], color=ec)
+    return G
+
+def create_nc_ec_table(node_color_n, edge_color_n, lamb=0.5):
+    nc_ec_stats = np.zeros((node_color_n, node_color_n, edge_color_n+1), dtype=np.int32)
+    for i in range(node_color_n):
+        for j in range(i+1, node_color_n):
+            for ec in range(1, edge_color_n + 1):
+                nc_ec_stats[i, j, ec] = np.random.poisson(lamb)
+
+                nc_ec_stats[j, i, ec] = nc_ec_stats[i, j, ec]
+    return nc_ec_stats
+                                                   
 @pytest.mark.parametrize('node_color_n', [1, 2, 3, 5, 8])
 @pytest.mark.parametrize('edge_color_n', [1, 2, 4, 8])
 @pytest.mark.parametrize('copies', [1, 2, 3, 4])
 def test_get_color_edge_possible_graph_gen(node_color_n, edge_color_n, copies):
     """
     Create graphs that will have a specific nodetype-edgetype stats by 
-    construction. 
+    construction and then checks that we can recover those stats properly
 
     """
     np.random.seed(0)
     for iters in range(10):
-        node_color_n = 4
-        edge_color_n = 6
 
-        possible_edge_colors = np.arange(edge_color_n) + 1
-        possible_node_colors = np.arange(node_color_n)
+        possible_edge_colors = np.arange(edge_color_n, dtype=np.int32) + 1
+        possible_node_colors = np.arange(node_color_n, dtype=np.int32)
 
-        G = nx.Graph()
-        npos = 0
-        copies = 8
-        for i in range(copies):
-            for nc in possible_node_colors:
-                G.add_node(npos, color=nc)
-                npos += 1
+        
+        nc_ec_stats = create_nc_ec_table(node_color_n, edge_color_n, 0.5)
 
-        nc_ec_stats = np.zeros((node_color_n, node_color_n, edge_color_n+1), dtype=np.int32)
-        for i in range(node_color_n):
-            for j in range(i+1, node_color_n):
-                for ec in range(1, edge_color_n + 1):
-                    nc_ec_stats[i, j, ec] = np.random.poisson(0.5)
-
-                    nc_ec_stats[j, i, ec] = nc_ec_stats[i, j, ec]
-        # random matrix
-
-        for i in range(node_color_n):
-            nc_i = possible_node_colors[i]
-            for j in range(i, node_color_n):
-                nc_j = possible_node_colors[j]
-                for ec in possible_edge_colors:
-                    ##
-                    tgt_number = nc_ec_stats[nc_i, nc_j, ec] # there should be this many edges between nodes of this color and nodes of that color
-                    for _ in range(tgt_number):
-                        nc_i_nodes = np.random.permutation([n for (n, d) in G.nodes(data=True) if d['color'] == nc_i])
-                        nc_j_nodes = np.random.permutation([n for (n, d) in G.nodes(data=True) if d['color'] == nc_j])
-                        unconnected = set([sort_tuple(p) for p in itertools.product(nc_i_nodes, nc_j_nodes)\
-                                       if p not in G.edges])
-                        if len(unconnected)  == 0:
-                            ## if there are no disconnected nodes of this color, add a new one
-
-                            new_node_id = len(G.nodes)
-                            G.add_node(new_node_id, color=nc_j)
-
-                            unconnected = set([(n, new_node_id) for p in nc_i_nodes])
-
-
-                        j= np.random.randint(0, len(unconnected))
-                        tgt_pair = list(unconnected)[j]
-                        print('adding edge between node colors', nc_i, nc_j, "with color=", ec) 
-                        G.add_edge(tgt_pair[0], tgt_pair[1], color=ec)
-
-
-
+        G = create_graph_specific_nodetype_edgetype_counts(node_color_n, edge_color_n,
+                                                           copies, nc_ec_stats)
 
         g_adj, g_color = pysubiso.util.nx_to_adj(G)
         possible_table = pysubiso.get_color_edge_possible_table(g_adj, g_color, possible_edge_colors)
         compare_node_edge_tables(possible_table, nc_ec_stats)
+
+
+@pytest.mark.parametrize('node_color_n', [1, 2, 3, 5, 8])
+@pytest.mark.parametrize('edge_color_n', [1, 2, 4, 8])
+@pytest.mark.parametrize('copies', [1, 2, 3, 4])
+def test_candidate_edge_filtering(node_color_n, edge_color_n, copies):
+    #################################################
+    ## create random edge stats table
+    #################################################
+    np.random.seed(0)
+
+    for _ in range(1):
+
+
+        nc_ec_stats = create_nc_ec_table(node_color_n, edge_color_n, 0.5)
+
+        #################################################
+        ## create graph with associated nodecolor-edgecolor stats
+        #################################################    
+        G = create_graph_specific_nodetype_edgetype_counts(node_color_n, edge_color_n,
+                                                           copies, nc_ec_stats)
+
+        #################################################
+        ## create a list of all possible candidate edges
+        #################################################
+        g_adj, g_colors = pysubiso.util.nx_to_adj(G)
+        possible_edge_colors = np.arange(edge_color_n, dtype=np.int32) + 1
+
+        candidate_edges = pysubiso.gen_possible_next_edges(g_adj, possible_edge_colors)
+        for i, j, c in candidate_edges:
+            assert j > i
+            assert c> 0
+
+        print(set((np.arange(edge_color_n)+1).tolist()))
+        assert set(np.unique(candidate_edges[:, 2]) ).issubset(set(possible_edge_colors))
+
+        #################################################
+        ## filter the edges
+        #################################################
+        filtered_candidate_edges = pysubiso.filter_candidate_edges(np.zeros_like(g_adj), g_colors,
+                                                                   g_adj, g_colors,
+                                                                   possible_edge_colors , 
+                                                                   candidate_edges)
+        print(len(candidate_edges), "-->", len(filtered_candidate_edges))
+
+        fce_set = set([tuple(c) for c in filtered_candidate_edges])
+        for i, j, c in filtered_candidate_edges:
+            assert j > i
+            ec = g_adj[i,j]
+            if ec ==  0:
+                continue
+            nc_0 = g_colors[i]
+            nc_1 = g_colors[j]
+            print(f"candidate from ({i}, color {nc_0})--{ec}--({j}, color {nc_1})")
+
+            #################################################
+            # check if this exists in G by brute force
+            #################################################
+            match = False
+            for e0, e1, d in G.edges(data=True):
+                tgt_nc_0 = g_colors[e0]
+                tgt_nc_1 = g_colors[e1]
+                tgt_ec = d['color']
+                assert tgt_ec > 0
+                if (tgt_nc_0, tgt_nc_1, tgt_ec) == (nc_0, nc_1, ec):
+                    match=True
+
+            if match:
+                assert (i, j, c) in fce_set
+            else:
+                assert (i, j, c) not in fce_set
 
 

@@ -2,7 +2,7 @@ import numpy as np
 cimport numpy as np
 
 cimport cython
-
+import time
 
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(False)   # Deactivate negative indexing.
@@ -39,7 +39,8 @@ cpdef gen_possible_next_edges(np.int32_t[:,:] adj, np.int32_t[:] edge_colors):
     Input: adj: N x N _symmetric_ adjacency matrix (np.int32)
            colors: array of possible edge colors (> 0, np.int32)
     Returns:
-           M x 3 np.int32 np.array of [(i, j, c)] 
+           M x 3 np.int32 np.array of [(i, j, c)] where
+                     c is the actual edge color value (not index)
 
     Note : We don't consider self-loops and only loop at the 
     upper-triangular part of the matrix. 
@@ -82,29 +83,20 @@ def candidate_to_adj(np.int32_t[:, :] candidates, np.int8_t[:] success,
     """
 
     out_adj = np.zeros((adj_N, adj_N, color_C), dtype=np.int32)
-    # cpdef int i, j, c, s 
 
-    # for (i, j, c), s in zip(candidates, success):
-    #     if s:
-    #         out_adj[i, j, color_idx_map[c]] = 1
-    #         out_adj[j, i, color_idx_map[c]] = 1
     _candidate_to_adj(candidates, success, color_idx_map,
                       adj_N, color_C, out_adj)
     return out_adj
 
-def get_color_edge_possible_table(adj, node_colors, possible_edge_colors):
-    """
-    
-    
-    Returns NC x NC x EC matrix where 
-    p[nc_i, nc_j, ec] = number of edges of color ec in adj 
-    from node color i to node colorj 
-    """
-    possible_node_colors = np.max(node_colors)
-    out = np.zeros((possible_node_colors + 1,
-                    possible_node_colors +1,
-                    np.max(possible_edge_colors) + 1),
-                   dtype=np.int32)
+@cython.boundscheck(False)  # Deactivate bounds checking
+@cython.wraparound(False)   # Deactivate negative indexing.
+cdef _get_color_edge_possible_table(np.int32_t[:,:] adj,
+                                   np.int32_t[:] node_colors,
+                                   np.int32_t[:] possible_edge_colors,
+                                   np.int32_t[:, :, :] out):
+
+    cdef int i, j, nc_i, nc_j, ec
+    cdef int possible_node_colors = np.max(node_colors)
 
     for i in range(adj.shape[0]):
         for j in range(i +1, adj.shape[1]):
@@ -116,30 +108,94 @@ def get_color_edge_possible_table(adj, node_colors, possible_edge_colors):
                 if nc_i != nc_j: # don't double-count diagonal
                     out[nc_j, nc_i, ec] += 1
     return out
-    
-def filter_candidate_edges(sub_adj, sub_colors,
-                           main_adj, main_colors,
-                           possible_edge_colors, 
-                           candidate_edges):
-    """
-    Filter candidate edges using heuristics. 
 
-    1. If the main has no edges between color i and color j
-       of edge color c then we can skip testing 
+@cython.boundscheck(False)  # Deactivate bounds checking
+@cython.wraparound(False)   # Deactivate negative indexing.
+cpdef get_color_edge_possible_table(np.int32_t[:,:] adj,
+                                    np.int32_t[:] node_colors,
+                                    np.int32_t[:] possible_edge_colors):
+    """
+    
+    Returns NC x NC x EC matrix where 
+    p[nc_i, nc_j, ec] = number of edges of color ec in adj 
+    from node color i to node colorj 
+    """
+    cdef int possible_node_colors = np.max(node_colors)
+
+    color_edge_possible_table = np.zeros((possible_node_colors + 1,
+                                          possible_node_colors +1,
+                                          np.max(possible_edge_colors) + 1),
+                                         dtype=np.int32)
+
+    _get_color_edge_possible_table(adj, node_colors,
+                                  possible_edge_colors,
+                                  color_edge_possible_table)
+    return color_edge_possible_table
+
+@cython.boundscheck(False)  # Deactivate bounds checking
+@cython.wraparound(False)   # Deactivate negative indexing.
+cdef int _filter_edge_table(np.int32_t[:, :] candidate_edges,
+                        np.int32_t[:] sub_colors,
+                        np.int32_t[:, :, :] color_edge_possible_table,
+                        np.int32_t[:, :] filtered_candidates_out) :
+    cdef np.int32_t pos, i, j, c
+
+    pos = 0
+    cdef int N = candidate_edges.shape[0]
+    cdef int ce_i
+    cdef int nc_i, nc_j
+    for ce_i in range(N):
+        i = candidate_edges[ce_i, 0]
+        j = candidate_edges[ce_i, 1]
+        c = candidate_edges[ce_i, 2]
+
+        nc_i = sub_colors[i]
+        nc_j = sub_colors[j]
+
+        if color_edge_possible_table[nc_i, nc_j, c] > 0:
+            filtered_candidates_out[pos, 0] = i
+            filtered_candidates_out[pos, 1] = j
+            filtered_candidates_out[pos, 2] = c
+            pos +=1
+    return pos
+            
+
+
+cpdef filter_candidate_edges(sub_adj, sub_colors,
+                             main_adj, main_colors,
+                             possible_edge_colors, 
+                             candidate_edges):
+    """
+    Filter candidate edges for graph sub using heuristics. 
+    If we add (i, j, c) to sub is there any chance of it being subiso
+    to main? 
+
+    sub_adj, main_adj: adjacency matrix where entry is color _value_
+    sub_colors, main_colors: unique colors in the graph
+
+    heuristics used:
+    1. If the main has no edges between node color i and node color j
+       of edge color c then we can skip candidate 
     ## FIXME add more
 
     """
+    assert np.min(possible_edge_colors) > 0 
+    cdef int possible_node_colors = np.max(main_colors)
 
-    color_edge_possible_table = get_color_edge_possible_table(main_adj, main_colors,
-                                                          possible_edge_colors)
-    candidate_edges_out = []
-    for i, j, c in candidate_edges:
-        nc_i = sub_colors[i]
-        nc_j = sub_colors[j]
-        if color_edge_possible_table[i, j, c] > 0:
-            candidate_edges_out.append((i,j, c))
-    return np.array(candidate_edges_out, dtype=np.int32)
+    color_edge_possible_table = np.zeros((possible_node_colors + 1,
+                                          possible_node_colors +1,
+                                          np.max(possible_edge_colors) + 1),
+                                         dtype=np.int32)
 
+    _get_color_edge_possible_table(main_adj, main_colors,
+                                   possible_edge_colors,
+                                   color_edge_possible_table)
+
+    filtered_candidates_out = np.empty((len(candidate_edges),3), dtype=np.int32)
+    num_out = _filter_edge_table(candidate_edges, sub_colors, color_edge_possible_table,
+                                 filtered_candidates_out)
+    filtered_candidates_out.resize(num_out, 3)
+    return filtered_candidates_out
             
     
 
