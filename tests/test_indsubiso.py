@@ -57,6 +57,7 @@ def test_indsubiso_simple_colors(matcher):
     x[1, 2] = 1
     x = x + x.T
 
+    m = pysubiso.create_match(matcher)
 
     assert m.is_indsubiso(x, c1, x, c1)
     assert m.is_indsubiso(x, c1, x, c2)
