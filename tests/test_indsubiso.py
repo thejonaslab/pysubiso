@@ -44,6 +44,30 @@ def test_indsubiso_simple_edgedel(matcher):
     assert m.is_indsubiso(y, c, x, c)
     assert not m.is_indsubiso(x, c, y, c)
 
+@pytest.mark.parametrize('matcher', MATCHERS)
+def test_indsubiso_simple_colors(matcher):
+    """
+    does A-A match B-B
+
+    """
+    x = np.zeros((3, 3), np.int32)
+    c1 = np.zeros(3, np.int32)
+    c2 = np.ones(3, np.int32)
+    x[0, 1] = 1
+    x[1, 2] = 1
+    x = x + x.T
+
+
+    assert m.is_indsubiso(x, c1, x, c1)
+    assert m.is_indsubiso(x, c1, x, c2)
+
+    x2 = np.zeros((3, 3), np.int32)
+    x[0, 1] = 2
+    x[1, 2] = 2
+    x = x + x.T
+
+
+    assert not m.is_indsubiso(x, c1, x1, c1)
 
 def random_graph_small(graph_size=20, node_colors = [1, 2, 5],
                        edge_colors = [1, 2, 4]):
