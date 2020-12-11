@@ -60,15 +60,15 @@ def test_indsubiso_simple_colors(matcher):
     m = pysubiso.create_match(matcher)
 
     assert m.is_indsubiso(x, c1, x, c1)
-    assert m.is_indsubiso(x, c1, x, c2)
+    assert not m.is_indsubiso(x, c1, x, c2)
 
     x2 = np.zeros((3, 3), np.int32)
-    x[0, 1] = 2
-    x[1, 2] = 2
-    x = x + x.T
+    x2[0, 1] = 2
+    x2[1, 2] = 2
+    x2 = x2 + x2.T
 
 
-    assert not m.is_indsubiso(x, c1, x1, c1)
+    assert not m.is_indsubiso(x, c1, x2, c1)
 
 def random_graph_small(graph_size=20, node_colors = [1, 2, 5],
                        edge_colors = [1, 2, 4]):
