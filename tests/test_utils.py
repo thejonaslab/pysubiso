@@ -262,3 +262,29 @@ def test_candidate_edge_filtering(node_color_n, edge_color_n, copies):
                 assert (i, j, c) not in fce_set
 
 
+
+def test_adj_weight_to_edge_color():
+    N = 4
+
+    np.random.seed(0)
+    
+    weights = {1.0: 1, 1.5: 2, 2.0: 3, 3.0:4}
+
+    A_color = np.random.randint(0, 5, size=(N, N), dtype=np.int32)
+    A_weight = np.zeros((N, N), dtype=np.float32)
+    colors_idx = np.zeros(5, dtype=np.float32)
+
+    for w, c in weights.items():
+        colors_idx[c] = w
+
+        
+    for i in range(N):
+        for j in range(N):
+            A_weight[i, j] = colors_idx[A_color[i, j]]
+
+
+        
+    A_out = pysubiso.adj_weight_to_edge_color(A_weight, colors_idx)
+    np.testing.assert_array_equal(A_out, A_color)
+                                              
+    

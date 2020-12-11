@@ -199,4 +199,35 @@ cpdef filter_candidate_edges(sub_adj, sub_colors,
             
     
 
+@cython.boundscheck(False)  # Deactivate bounds checking
+@cython.wraparound(False)   # Deactivate negative indexing.
+cdef _adj_weight_to_edge_color(np.float32_t[:, :] weight_adj,
+                               np.float32_t[:] color_idx,
+                               np.int32_t[:, :] out):
+    cdef int i, j
+    cdef int N = weight_adj.shape[0]
+    cdef int c_i
+    cdef float w
+
+    for i in range(N):
+        for j in range(N):
+            for c_i, w in enumerate(color_idx):
+                if weight_adj[i, j] == w:
+                    out[i, j] = c_i
+    return out
+
+
+cpdef adj_weight_to_edge_color(np.float32_t[:, :] weight_adj,
+                               np.float32_t[:] color_idx):
+    """
+    Convert an adjacency weight matrix to a color matrix 
+
+    color_idx has [weight at color pos] 
+    e.g. [0 1.0 1.5 2.0 3.0]
+    """
+    cdef int N = weight_adj.shape[0]
+    out = np.zeros((N, N), dtype=np.int32)
     
+
+    _adj_weight_to_edge_color(weight_adj, color_idx, out) 
+    return out
